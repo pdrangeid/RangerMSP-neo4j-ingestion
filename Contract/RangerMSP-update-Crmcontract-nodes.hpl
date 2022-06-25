@@ -1,0 +1,666 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pipeline>
+  <info>
+    <name>RangerMSP-update-Crmcontract-nodes</name>
+    <name_sync_with_filename>Y</name_sync_with_filename>
+    <description/>
+    <extended_description/>
+    <pipeline_version/>
+    <pipeline_type>Normal</pipeline_type>
+    <pipeline_status>0</pipeline_status>
+    <parameters>
+    </parameters>
+    <capture_transform_performance>N</capture_transform_performance>
+    <transform_performance_capturing_delay>1000</transform_performance_capturing_delay>
+    <transform_performance_capturing_size_limit>100</transform_performance_capturing_size_limit>
+    <created_user>-</created_user>
+    <created_date>2020/01/03 22:40:31.737</created_date>
+    <modified_user>admin</modified_user>
+    <modified_date>2020/01/05 12:32:41.443</modified_date>
+    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
+    <is_key_private>N</is_key_private>
+  </info>
+  <notepads>
+  </notepads>
+  <order>
+    <hop>
+      <from>Query new RangerMSP (bcontracts)</from>
+      <to>Create (:Crmcontract) nodes for new contracts</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get last :Crmcontract</from>
+      <to>Query updated RangerMSP (bcontract)</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Query updated RangerMSP (bcontract)</from>
+      <to>Update (:Crmcontract) nodes for modified contracts</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get job variables</from>
+      <to>Update Job/TFLogging</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get last :Crmcontract</from>
+      <to>Query new RangerMSP (bcontracts)</to>
+      <enabled>Y</enabled>
+    </hop>
+  </order>
+  <transform>
+    <name>Create (:Crmcontract) nodes for new contracts</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $contracts as row
+WITH *,datetime(toString(row.STARTDATE)).epochmillis as sdepoch,datetime(toString(row.ENDDATE)).epochmillis as edepoch
+OPTIONAL MATCH (cu:Crmemployee {acctrecid:row.CREATEUSER})
+OPTIONAL MATCH (uu:Crmemployee {acctrecid:row.UDPATEUSER})
+MERGE (c:Crmcontract {recid:row.RECID})
+ON CREATE set c.code=row.CODE,c.name=row.NAME,c.startdate=sdepoch,c.enddate=edepoch,c.description=row.DESCINTERNAL,c.descexternal=row.DESCEXTERNAL,c.createdon=datetime(row.CREATEDATE).epochmillis,
+c.updatedon=datetime(row.UPDATEDATE).epochmillis,c.seqid=row.SEQID,c.createdby=coalesce(cu.name,row.CREATEUSER),c.updatedby=coalesce(uu.name,row.UPDATEUSER),c.seqid=row.SEQID
+with c,row
+OPTIONAL MATCH (ct:Crmcontracttype {recid:row.BPLANRECID})
+OPTIONAL MATCH (ctd:Crmcontracttype {default:TRUE,value:row.CONTRACTTYPE}) WHERE ct.recid IS NULL
+OPTIONAL MATCH (cs:Crmcontractstatus {value:row.STATUS})
+OPTIONAL MATCH (a:Company {acctrecid:row.ACCOUNTRECID})
+OPTIONAL MATCH (e:Crmemployee {name:row.USER2})
+OPTIONAL MATCH (cps:Crmcontractpayment {name:row.USER1}) 
+OPTIONAL MATCH (ps:Crmprojectstatus {name:row.USER3}) 
+FOREACH (ignoreMe in CASE WHEN cps.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:PAYMENT_STATUS]->(cps))
+FOREACH (ignoreMe in CASE WHEN ps.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:PROJECT_STATUS]->(ps))
+FOREACH (ignoreMe in CASE WHEN ct.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CONTRACT_TYPE]->(ct))
+FOREACH (ignoreMe in CASE WHEN row.CONTRACTTYPE='M' and row.AMOUNTSTART &lt;&gt; 0.0 THEN [1] ELSE [] END | SET c.amount=row.AMOUNTSTART)
+FOREACH (ignoreMe in CASE WHEN row.CONTRACTTYPE&lt;&gt;'M' and row.AMOUNTSTART &lt;&gt; 0.0 THEN [1] ELSE [] END | SET c.hours=row.AMOUNTSTART)
+FOREACH (ignoreMe in CASE WHEN cs.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CONTRACT_STATUS]->(cs))
+FOREACH (ignoreMe in CASE WHEN a.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CONTRACT_FOR]->(a))
+FOREACH (ignoreMe in CASE WHEN e.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:PROJECT_MANAGER]->(e))
+FOREACH (ignoreMe in CASE WHEN NOT (c)-[:CONTRACT_TYPE]-(:Crmcontracttype) and ctd.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CONTRACT_TYPE]->(ctd))
+;</cypher>
+    <batch_size>500</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>contracts</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CODE</parameter>
+        <field>CODE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>NAME</parameter>
+        <field>NAME</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>STARTDATE</parameter>
+        <field>STARTDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>ENDDATE</parameter>
+        <field>ENDDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>DESCEXTERNAL</parameter>
+        <field>DESCEXTERNAL</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>DESCINTERNAL</parameter>
+        <field>DESCINTERNAL</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER1</parameter>
+        <field>USER1</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER2</parameter>
+        <field>USER2</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER3</parameter>
+        <field>USER3</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ACCOUNTRECID</parameter>
+        <field>ACCOUNTRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>STATUS</parameter>
+        <field>STATUS</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CONTRACTTYPE</parameter>
+        <field>CONTRACTTYPE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEDATE</parameter>
+        <field>CREATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>SEQID</parameter>
+        <field>SEQID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEDATE</parameter>
+        <field>UPDATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>AMOUNTSTART</parameter>
+        <field>AMOUNTSTART</field>
+        <type>Float</type>
+      </mapping>
+      <mapping>
+        <parameter>BPLANRECID</parameter>
+        <field>BPLANRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEUSER</parameter>
+        <field>CREATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEUSER</parameter>
+        <field>UPDATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>SEQID1</parameter>
+        <field>SEQID_1</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>704</xloc>
+      <yloc>32</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get last :Crmcontract</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
+OPTIONAL MATCH (l:Crmcontract)
+WITH max(coalesce(l.createdon,0)) as lastnewcontract, max(coalesce(l.updatedon,0)) as lastmodifiedcontract,cdl
+WITH COLLECT(lastnewcontract)+COLLECT(lastmodifiedcontract)+cdl.crminit as tstamps
+UNWIND tstamps as ts
+WITH min(ts) as lastmodifiedcontract
+WITH apoc.date.format(coalesce(lastmodifiedcontract,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastmodifiedcontract
+//RETURN '1990-08-14 14:34:40.040' as lastmodifiedcontract
+RETURN lastmodifiedcontract
+;</cypher>
+    <batch_size/>
+    <read_only>Y</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>N</unwind>
+    <unwind_map/>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings/>
+    <returns>
+      <return>
+        <name>lastmodcontract</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>80</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get job variables</name>
+    <type>GetVariable</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>jobname</name>
+        <variable> ${Internal.Workflow.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>transname</name>
+        <variable>${Internal.Pipeline.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tdir</name>
+        <variable>${Internal.Pipeline.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jdir</name>
+        <variable>${Internal.Workflow.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jfilename</name>
+        <variable>${Internal.Workflow.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tfilename</name>
+        <variable>${Internal.Pipeline.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>144</xloc>
+      <yloc>256</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query new RangerMSP (bcontracts)</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <lookup>Get last :Crmcontract</lookup>
+    <limit>0</limit>
+    <sql>select RECID,SEQID,CODE,NAME,STARTDATE,ENDDATE,CAST(DESCEXTERNAL as SQL_VARCHAR) AS DESCEXTERNAL,CAST(DESCINTERNAL as SQL_VARCHAR) AS DESCINTERNAL,USER1,USER2,USER3,ACCOUNTRECID,STATUS,CONTRACTTYPE,BPLANRECID,AMOUNTSTART,CREATEDATE,SEQID,UPDATEDATE,CREATEUSER,UPDATEUSER from bcontracts where RECID is not null AND CREATEDATE > ?</sql>
+    <variables_active>Y</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>416</xloc>
+      <yloc>32</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query updated RangerMSP (bcontract)</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <lookup>Get last :Crmcontract</lookup>
+    <limit>0</limit>
+    <sql>select RECID,SEQID,CODE,NAME,STARTDATE,ENDDATE,CAST(DESCEXTERNAL as SQL_VARCHAR) AS DESCEXTERNAL,CAST(DESCINTERNAL as SQL_VARCHAR) AS DESCINTERNAL,USER1,USER2,USER3,ACCOUNTRECID,STATUS,CONTRACTTYPE,BPLANRECID,AMOUNTSTART,CREATEDATE,SEQID,UPDATEDATE,CREATEUSER,UPDATEUSER from bcontracts where RECID is not null  AND UPDATEDATE > ?</sql>
+    <variables_active>Y</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>416</xloc>
+      <yloc>128</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update (:Crmcontract) nodes for modified contracts</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $contracts as row
+MATCH (c:Crmcontract {recid:row.RECID})
+OPTIONAL MATCH (ps:Crmprojectstatus {name:coalesce(row.USER3,'TBD')})
+OPTIONAL MATCH (cps:Crmcontractpayment {name:coalesce(row.USER1,'Not Provided')})
+OPTIONAL MATCH (ct:Crmcontracttype {recid:row.BPLANRECID})
+OPTIONAL MATCH (ctd:Crmcontracttype {default:TRUE,value:row.CONTRACTTYPE}) WHERE ct.recid IS NULL
+OPTIONAL MATCH (cs:Crmcontractstatus {value:row.STATUS})
+OPTIONAL MATCH (a:Company {acctrecid:coalesce(row.ACCOUNTRECID,'None Provided')})
+OPTIONAL MATCH (e:Crmemployee {name:coalesce(row.USER2,'None Provided')})
+OPTIONAL MATCH (cps:Crmcontractpayment {name:row.USER1}) 
+OPTIONAL MATCH (ps:Crmprojectstatus {name:row.USER3}) 
+OPTIONAL MATCH (cu:Crmemployee {acctrecid:row.CREATEUSER})
+OPTIONAL MATCH (uu:Crmemployee {acctrecid:row.UDPATEUSER})
+OPTIONAL MATCH (c)-[pysr:PAYMENT_STATUS]->(ocps:Crmcontractpayment)
+OPTIONAL MATCH (c)-[pjsr:PROJECT_STATUS]->(ops:Crmprojectstatus)
+OPTIONAL MATCH (c)-[ctr:CONTRACT_TYPE]->(oct:Crmcontracttype)
+OPTIONAL MATCH (c)-[csr:CONTRACT_STATUS]->(ocs:Crmcontractstatus)
+OPTIONAL MATCH (c)-[cfr:CONTRACT_FOR]->(ocf:Company)
+OPTIONAL MATCH (c)-[pmr:PROJECT_MANAGER]->(opm:Crmemployee)
+WITH *,datetime(toString(row.STARTDATE)).epochmillis as sdepoch,datetime(toString(row.ENDDATE)).epochmillis as edepoch
+FOREACH (ignoreMe in CASE WHEN ocps.name IS NULL or (row.USER1 &lt;&gt; ocps.name) THEN [1] ELSE [] END | DELETE pysr)
+FOREACH (ignoreMe in CASE WHEN ops.name IS NULL or (row.USER3 &lt;&gt; ops.name) THEN [1] ELSE [] END | DELETE pjsr)
+FOREACH (ignoreMe in CASE WHEN oct.name IS NULL or (row.BPLANRECID &lt;&gt; oct.recid) THEN [1] ELSE [] END | DELETE ctr)
+FOREACH (ignoreMe in CASE WHEN ocs.value IS NULL or (row.STATUS &lt;&gt; ocs.value) THEN [1] ELSE [] END | DELETE csr)
+FOREACH (ignoreMe in CASE WHEN ocf.acctrecid IS NULL or (row.ACCOUNTRECID &lt;&gt; ocf.acctrecid) THEN [1] ELSE [] END | DELETE cfr)
+FOREACH (ignoreMe in CASE WHEN opm.acctrecid IS NULL or (row.USER2 &lt;&gt; opm.acctrecid) THEN [1] ELSE [] END | DELETE pmr)
+FOREACH (ignoreMe in CASE WHEN coalesce(c.createdby,'isnull') &lt;&gt; coalesce(cu.name,row.CREATEUSER,'isnull') THEN [1] ELSE [] END | SET c.createdby=coalesce(cu.name,row.CREATEUSER))
+FOREACH (ignoreMe in CASE WHEN coalesce(c.updatedby,'isnull') &lt;&gt; coalesce(uu.name,row.UPDATEUSER,'isnull') THEN [1] ELSE [] END | SET c.updatedby=coalesce(uu.name,row.UPDATEUSER))
+FOREACH (ignoreMe in CASE WHEN coalesce(c.code,'isnull') &lt;&gt; coalesce(row.CODE,'isnull') THEN [1] ELSE [] END | SET c.code=row.CODE)
+FOREACH (ignoreMe in CASE WHEN coalesce(c.name,'isnull') &lt;&gt; coalesce(row.NAME,'isnull') THEN [1] ELSE [] END | SET c.name=row.NAME)
+FOREACH (ignoreMe in CASE WHEN coalesce(c.startdate,'isnull') &lt;&gt; coalesce(row.STARTDATE,'isnull') THEN [1] ELSE [] END | SET c.startdate=sdepoch)
+FOREACH (ignoreMe in CASE WHEN coalesce(c.enddate,'isnull') &lt;&gt; coalesce(row.ENDDATE,'isnull') THEN [1] ELSE [] END | SET c.enddate=edepoch)
+FOREACH (ignoreMe in CASE WHEN coalesce(c.seqid,'isnull') &lt;&gt; coalesce(row.SEQID,'isnull') THEN [1] ELSE [] END | SET c.seqid=row.SEQID)
+FOREACH (ignoreMe in CASE WHEN coalesce(c.description,'isnull') &lt;&gt; coalesce(row.DESCINTERNAL,'isnull') THEN [1] ELSE [] END | SET c.description=row.DESCINTERNAL)
+FOREACH (ignoreMe in CASE WHEN coalesce(c.descexternal,'isnull') &lt;&gt; coalesce(row.DESCEXTERNAL,'isnull') THEN [1] ELSE [] END | SET c.descexternal=row.DESCEXTERNAL)
+FOREACH (ignoreMe in CASE WHEN coalesce(c.createdon,'isnull') &lt;&gt; coalesce(row.CREATEDATE,'isnull') THEN [1] ELSE [] END | SET c.createdon=datetime(row.CREATEDATE).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(c.updatedon,'isnull') &lt;&gt; coalesce(row.UPDATEDATE,'isnull') THEN [1] ELSE [] END | SET c.updatedon=datetime(row.UPDATEDATE).epochmillis)
+FOREACH (ignoreMe in CASE WHEN cps.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:PAYMENT_STATUS]->(cps))
+FOREACH (ignoreMe in CASE WHEN ps.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:PROJECT_STATUS]->(ps))
+FOREACH (ignoreMe in CASE WHEN ct.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CONTRACT_TYPE]->(ct))
+FOREACH (ignoreMe in CASE WHEN cs.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CONTRACT_STATUS]->(cs))
+FOREACH (ignoreMe in CASE WHEN a.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CONTRACT_FOR]->(a))
+FOREACH (ignoreMe in CASE WHEN e.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:PROJECT_MANAGER]->(e))
+FOREACH (ignoreMe in CASE WHEN row.CONTRACTTYPE='M' and c.amount&lt;&gt;row.AMOUNTSTART and row.AMOUNTSTART &lt;&gt; 0.0 THEN [1] ELSE [] END | SET c.amount=row.AMOUNTSTART)
+FOREACH (ignoreMe in CASE WHEN row.CONTRACTTYPE&lt;&gt;'M' and c.hours&lt;&gt;row.AMOUNTSTART and row.AMOUNTSTART &lt;&gt; 0.0 THEN [1] ELSE [] END | SET c.hours=row.AMOUNTSTART)
+FOREACH (ignoreMe in CASE WHEN NOT (c)-[:CONTRACT_TYPE]-(:Crmcontracttype) and ctd.name IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CONTRACT_TYPE]->(ctd))
+
+;</cypher>
+    <batch_size>500</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>contracts</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CODE</parameter>
+        <field>CODE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>NAME</parameter>
+        <field>NAME</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>STARTDATE</parameter>
+        <field>STARTDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>ENDDATE</parameter>
+        <field>ENDDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>DESCEXTERNAL</parameter>
+        <field>DESCEXTERNAL</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>DESCINTERNAL</parameter>
+        <field>DESCINTERNAL</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER1</parameter>
+        <field>USER1</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER2</parameter>
+        <field>USER2</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER3</parameter>
+        <field>USER3</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ACCOUNTRECID</parameter>
+        <field>ACCOUNTRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>STATUS</parameter>
+        <field>STATUS</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CONTRACTTYPE</parameter>
+        <field>CONTRACTTYPE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEDATE</parameter>
+        <field>CREATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>SEQID</parameter>
+        <field>SEQID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEDATE</parameter>
+        <field>UPDATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>AMOUNTSTART</parameter>
+        <field>AMOUNTSTART</field>
+        <type>Float</type>
+      </mapping>
+      <mapping>
+        <parameter>BPLANRECID</parameter>
+        <field>BPLANRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEUSER</parameter>
+        <field>CREATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEUSER</parameter>
+        <field>UPDATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>SEQID1</parameter>
+        <field>SEQID_1</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>704</xloc>
+      <yloc>128</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update Job/TFLogging</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $taskparams as t
+WITH t,timestamp() as tfstart,trim(replace(t.jobname,'Parent Job Name',t.transname)) as jobname
+MATCH (l:N4jlogging {jobname:jobname})
+SET l.lasttfrun=tfstart,l.jobname=jobname,l.transname=t.transname,l.jobstatus='running',l.tdir=t.tdir,l.tfilename=t.tfilename,l.jdir=t.jdir,l.jfilename=t.jfilename
+RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobstart,l.jobname
+;</cypher>
+    <batch_size/>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>taskparams</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>jobname</parameter>
+        <field>jobname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>transname</parameter>
+        <field>transname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tdir</parameter>
+        <field>tdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jdir</parameter>
+        <field>jdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jfilename</parameter>
+        <field>jfilename</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tfilename</parameter>
+        <field>tfilename</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>jobstart</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.jobname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.transname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>352</xloc>
+      <yloc>256</yloc>
+    </GUI>
+  </transform>
+  <transform_error_handling>
+  </transform_error_handling>
+  <attributes/>
+</pipeline>

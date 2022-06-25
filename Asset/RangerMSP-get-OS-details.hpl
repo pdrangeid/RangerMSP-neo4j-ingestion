@@ -1,0 +1,551 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pipeline>
+  <info>
+    <name>RangerMSP-get-OS-details</name>
+    <name_sync_with_filename>Y</name_sync_with_filename>
+    <description/>
+    <extended_description/>
+    <pipeline_version/>
+    <pipeline_type>Normal</pipeline_type>
+    <parameters>
+    </parameters>
+    <capture_transform_performance>N</capture_transform_performance>
+    <transform_performance_capturing_delay>1000</transform_performance_capturing_delay>
+    <transform_performance_capturing_size_limit>100</transform_performance_capturing_size_limit>
+    <created_user>-</created_user>
+    <created_date>2022/01/21 10:11:10.608</created_date>
+    <modified_user>-</modified_user>
+    <modified_date>2022/01/21 10:11:10.608</modified_date>
+    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
+    <is_key_private>N</is_key_private>
+  </info>
+  <notepads>
+  </notepads>
+  <order>
+    <hop>
+      <from>Query RangerMSP Assets (assets) table for OS info</from>
+      <to>Create (:Crmasset)-[:DEVICE_RUNS_OS]-(:Os) (existing Windows OS matches</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Query RangerMSP Assets (assets) table for OS info</from>
+      <to>Block this step until steps finish</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Block this step until steps finish</from>
+      <to>Create additional OS matches</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get variables</from>
+      <to>Update Logging (BNTagging pt2 update tf start)</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Block until transforms finish</from>
+      <to>Match OS via :Dattoasset values</to>
+      <enabled>Y</enabled>
+    </hop>
+  </order>
+  <transform>
+    <name>Block this step until steps finish</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr>0</CopyNr>
+        <name>Create (:Crmasset)-[:DEVICE_RUNS_OS]-(:Os) (existing Windows OS matches</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>304</xloc>
+      <yloc>128</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Create (:Crmasset)-[:DEVICE_RUNS_OS]-(:Os) (existing Windows OS matches</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $assets as a
+//MATCH (ca:Crmasset {recid:a.RECID}) WHERE not (ca)-[:DEVICE_RUNS_OS]-(:Os)
+MATCH (ca:Crmasset {recid:a.RECID})-[:ASSET_STATE]->(:Recordstatus {state:'A'}) WHERE not (ca)-[:DEVICE_RUNS_OS]->(:Os)
+WITH *,split(a.NOTES,'\r\n') as notesarr
+UNWIND notesarr as ni
+WITH ca,a,ni WHERE toLower(ni) starts with 'os:' or toLower(ni) starts with 'os name:'
+WITH ca,a,trim(replace(trim(split(ni,':')[1]),'(64-bit)','')) as os,ni
+WITH * WHERE os IS NOT NULL and os &lt;&gt; ''
+MATCH (ros:Os) WHERE ros.name =~ os or trim(replace(replace(ros.name,'Professional','Pro'),'Edition','')) =~ os or
+trim(replace(ros.name,'Edition','')) =~ os or
+trim(replace(replace(ros.name,'Professional','Pro'),'Edition','')) =~ replace(os,'Microsoft ','')
+MERGE (ca)-[:DEVICE_RUNS_OS]-(ros)
+RETURN os,ros.name as osname,ni as notesitem,a.NOTES as notes
+//RETURN os,ni as notesitem,a.NOTES as notes</cypher>
+    <batch_size/>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>assets</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>STATUS</parameter>
+        <field>STATUS</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>NOTES</parameter>
+        <field>NOTES</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>os</name>
+        <type>String</type>
+        <source_type/>
+      </return>
+      <return>
+        <name>osname</name>
+        <type>String</type>
+        <source_type/>
+      </return>
+      <return>
+        <name>notes</name>
+        <type>String</type>
+        <source_type/>
+      </return>
+      <return>
+        <name>notesitem</name>
+        <type>String</type>
+        <source_type/>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>544</xloc>
+      <yloc>32</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Create additional OS matches</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $assets as a
+//MATCH (ca:Crmasset {recid:a.RECID}) WHERE not (ca)-[:DEVICE_RUNS_OS]-(:Os)
+MATCH (ca:Crmasset {recid:a.RECID})-[:ASSET_STATE]->(:Recordstatus {state:'A'}) WHERE not (ca)-[:DEVICE_RUNS_OS]->(:Os)
+WITH *,split(a.NOTES,'\r\n') as notesarr
+UNWIND notesarr as ni
+WITH ca,a,ni WHERE toLower(ni) starts with 'os:' or toLower(ni) starts with 'os name:'
+WITH ca,a,trim(replace(trim(split(ni,':')[1]),'(64-bit)','')) as os,ni
+WITH * WHERE os IS NOT NULL and os &lt;&gt; ''
+FOREACH (ignoreMe in CASE WHEN os contains 'Windows' AND not os contains ',' and not (ca)-[:DEVICE_RUNS_OS]-(:Os) THEN [1] ELSE [] END |MERGE (ros:Os {name:os}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN os contains 'Windows' AND os contains ','  and not (ca)-[:DEVICE_RUNS_OS]-(:Os)THEN [1] ELSE [] END |MERGE (ros:Os {name:split(os,',')[0]}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN (os starts with 'CentOS' or os starts with 'FreeBSD' or os starts with 'SUSE' or os starts with 'Ubuntu')  and not (ca)-[:DEVICE_RUNS_OS]-(:Os) THEN [1] ELSE [] END |MERGE (ros:Os {name:os}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN os contains 'CentOS Stream 8' and not (ca)-[:DEVICE_RUNS_OS]-(:Os) THEN [1] ELSE [] END |MERGE (ros:Os {name:'CentOS Stream 8'}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN os contains 'CentOS Stream 9' and not (ca)-[:DEVICE_RUNS_OS]-(:Os) THEN [1] ELSE [] END |MERGE (ros:Os {name:'CentOS Stream 9'}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN os contains '.el7.' and os contains 'CentOS' and not (ca)-[:DEVICE_RUNS_OS]-(:Os) THEN [1] ELSE [] END |MERGE (ros:Os {name:'CentOS 7'}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN (os contains '.el8.' or os contains '.el8_') and os contains 'CentOS' and not (ca)-[:DEVICE_RUNS_OS]-(:Os) THEN [1] ELSE [] END |MERGE (ros:Os {name:'CentOS 8'}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN os contains 'Other' and os contains 'Linux' and not (ca)-[:DEVICE_RUNS_OS]-(:Os) THEN [1] ELSE [] END |MERGE (ros:Os {name:os}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN os contains 'VMware' and not (ca)-[:DEVICE_RUNS_OS]-(:Os) THEN [1] ELSE [] END |MERGE (ros:Os {name:trim(split(os,'build')[0])}) MERGE (ca)-[r:DEVICE_RUNS_OS]->(ros) SET r.build=split(os,'build-')[1])
+FOREACH (ignoreMe in CASE WHEN os = '[Unknown]' and not (ca)-[:DEVICE_RUNS_OS]-(:Os) THEN [1] ELSE [] END |MERGE (ros:Os {name:os}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+RETURN os,ni as notesitem,a.NOTES as notes</cypher>
+    <batch_size/>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>assets</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>STATUS</parameter>
+        <field>STATUS</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>NOTES</parameter>
+        <field>NOTES</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>os</name>
+        <type>String</type>
+        <source_type/>
+      </return>
+      <return>
+        <name>osname</name>
+        <type>String</type>
+        <source_type/>
+      </return>
+      <return>
+        <name>notes</name>
+        <type>String</type>
+        <source_type/>
+      </return>
+      <return>
+        <name>notesitem</name>
+        <type>String</type>
+        <source_type/>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>432</xloc>
+      <yloc>224</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get variables</name>
+    <type>GetVariable</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>jobname</name>
+        <variable> ${Internal.Workflow.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>transname</name>
+        <variable>${Internal.Pipeline.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tdir</name>
+        <variable>${Internal.Pipeline.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jdir</name>
+        <variable>${Internal.Workflow.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jfilename</name>
+        <variable>${Internal.Workflow.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tfilename</name>
+        <variable>${Internal.Pipeline.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>336</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query RangerMSP Assets (assets) table for OS info</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <limit>0</limit>
+    <sql>select RECID,STATUS,CAST(NOTES as SQL_VARCHAR) AS NOTES FROM Assets where RECID IS NOT NULL AND NOTES IS NOT NULL AND (NOTES LIKE '%os name%' OR NOTES like '%os:%' or NOTES LIKE '%OS:%') AND STATUS = 'A'
+--select RECID,STATUS,CAST(NOTES as SQL_VARCHAR) AS NOTES FROM Assets where RECID IS NOT NULL AND NOTES IS NOT NULL AND (NOTES LIKE '%OS:%') AND STATUS = 'A'</sql>
+    <variables_active>Y</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>160</xloc>
+      <yloc>32</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update Logging (BNTagging pt2 update tf start)</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $taskparams as t
+WITH t,timestamp() as tfstart,trim(replace(t.jobname,'Parent Job Name',t.transname)) as jobname
+MATCH (l:N4jlogging {jobname:jobname})
+SET l.lasttfrun=tfstart,l.jobname=jobname,l.transname=t.transname,l.jobstatus='running',l.tdir=t.tdir,l.tfilename=t.tfilename,l.jdir=t.jdir,l.jfilename=t.jfilename
+RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobstart,l.jobname
+;</cypher>
+    <batch_size/>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>taskparams</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>jobname</parameter>
+        <field>jobname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>transname</parameter>
+        <field>transname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tdir</parameter>
+        <field>tdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jdir</parameter>
+        <field>jdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jfilename</parameter>
+        <field>jfilename</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tfilename</parameter>
+        <field>tfilename</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>jobstart</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.jobname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.transname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>384</xloc>
+      <yloc>336</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Match OS via :Dattoasset values</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>MATCH  (da:Dattoasset)-[:BACKED_UP_VIA]-(ca:Crmasset)-[:ASSET_STATE]-(:Recordstatus {state:'A'}) WHERE NOT (ca)-[:DEVICE_RUNS_OS]-(:Os)
+FOREACH (ignoreMe in CASE WHEN toLower(da.os) contains 'centos' and da.os contains '7'  THEN [1] ELSE [] END |MERGE (ros:Os {name:'CentOS 7'}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN toLower(da.os) contains 'centos' and da.os contains '8'  THEN [1] ELSE [] END |MERGE (ros:Os {name:'CentOS 8'}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+FOREACH (ignoreMe in CASE WHEN toLower(da.os) contains 'windows 6.3' THEN [1] ELSE [] END |MERGE (ros:Os {name:"Microsoft Windows 8.1"}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
+WITH *
+MATCH (ros:Os) WHERE ros.name =~ da.os or
+trim(replace(replace(ros.name,'Microsoft',''),' ','')) =~ replace(da.os,' ','') or
+trim(replace(replace(replace(ros.name,'Standard',''),'Edition',''),' ','')) =~ replace(da.os,' ','')
+MERGE (ca)-[:DEVICE_RUNS_OS]->(ros)
+;</cypher>
+    <batch_size/>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>N</unwind>
+    <unwind_map/>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>jobname</parameter>
+        <field>jobname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>transname</parameter>
+        <field>transname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tdir</parameter>
+        <field>tdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jdir</parameter>
+        <field>jdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jfilename</parameter>
+        <field>jfilename</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tfilename</parameter>
+        <field>tfilename</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>jobstart</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.jobname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.transname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>896</xloc>
+      <yloc>144</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Block until transforms finish</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create additional OS matches</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>656</xloc>
+      <yloc>144</yloc>
+    </GUI>
+  </transform>
+  <transform_error_handling>
+  </transform_error_handling>
+  <attributes/>
+</pipeline>

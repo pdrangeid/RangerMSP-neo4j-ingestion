@@ -1,0 +1,680 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow>
+  <name>Set-Indexes</name>
+  <name_sync_with_filename>Y</name_sync_with_filename>
+  <description/>
+  <extended_description/>
+  <workflow_version/>
+  <created_user>-</created_user>
+  <created_date>2022/03/30 18:21:05.848</created_date>
+  <modified_user>-</modified_user>
+  <modified_date>2022/03/30 18:21:05.848</modified_date>
+  <parameters>
+    </parameters>
+  <actions>
+    <action>
+      <name>Start</name>
+      <description/>
+      <type>SPECIAL</type>
+      <attributes/>
+      <repeat>N</repeat>
+      <schedulerType>0</schedulerType>
+      <intervalSeconds>0</intervalSeconds>
+      <intervalMinutes>60</intervalMinutes>
+      <hour>12</hour>
+      <minutes>0</minutes>
+      <weekDay>1</weekDay>
+      <DayOfMonth>1</DayOfMonth>
+      <parallel>N</parallel>
+      <xloc>50</xloc>
+      <yloc>50</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>Build RangerMSP object Indexes</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>//SECTION Create RangerMSP constraints 
+
+CALL apoc.schema.assert(null,{Assetcategory:['name'],Assettype:['name'],Catalias:['name'],Crmcontractpayment:['name'],Crmprojectstatus:['name'],Cmkhost:['name']},False)
+;
+CALL apoc.schema.assert(null,{Manufacturer:['name'],Mfralias:['name'],Model:['name'],Ticketlabel:['name'],Ticketpriority:['name'],Ticketstatus:['name']},False)
+;
+CALL apoc.schema.assert(null,{Company:['acctrecid'],Contact:['acctrecid'],Crmemployee:['acctrecid']},False)
+;
+CALL apoc.schema.assert(null,{Crmasset:['recid'],Crmcontract:['recid'],Crmcharge:['recid'],Crmitem:['recid'],Ticket:['recid'],Opportunity:['recid']},False)
+;
+CALL apoc.schema.assert(null,{Oppstage:['id'],Oppstatus:['id']},False)
+;
+CALL apoc.schema.assert(null,{Ticket:['ticketnumber']},False)
+;
+
+
+//SECTION Create RangerMSP Indexes
+CALL apoc.schema.assert({Crmitem:['number']},null,False)
+;
+CALL apoc.schema.assert({Ticket:['service'],Ticket:['host'],Ticket:['problem'],Ticket:['closedon'],Ticket:['manager']},null,False)
+;
+CALL apoc.schema.assert({Opportunity:['description']},null,False)
+;
+CALL apoc.schema.assert({Crmcharge:['createdon']},null,False)
+;
+CALL apoc.schema.assert({Crmcontract:['code','name','seqid']},null,False)
+;
+CALL apoc.schema.assert({Crmasset:['name'],Crmemployee:['name'],Crmasset:['mac'],Crmasset:['serial'],Auvikdevice:['macaddress'],Company:['name'],Contact:['email'],Contact:['name'],Cmkservice:['name'],Oppkind:['name'],Oppreason:['name'],Oppsource:['name']},null,False)
+;
+CALL apoc.schema.assert({Crmitem:['description']},null,False)
+;
+</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>224</xloc>
+      <yloc>48</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>RangerMSP Pre-requisites</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>//SECTION Create loader stats/metrix node
+MERGE (cdl:Crmdataload {name:'CommitCRM'})
+ON CREATE set cdl.crminit=timestamp()
+;
+
+//***EDIT-HERE***
+// USE THIS to set the MAXIMUM number of days and HISTORY notes to load (if you want to limit how much data gets ingested into the graph)
+MATCH (cdl:Crmdataload {name:'CommitCRM'})
+with cdl,apoc.date.add(timestamp(),'ms',-547, 'd') as oldestcharge
+set cdl.chargelimiter=oldestcharge
+with cdl,apoc.date.add(timestamp(),'ms',-100, 'd') as oldesthistory
+set cdl.historylimiter=oldesthistory
+;
+
+//SECTION Create Recordstatus Node Labels
+MERGE (act:Recordstatus {name:'Active',state:'A'})
+MERGE (nact:Recordstatus {name:'InActive',state:'N'})
+;
+
+//SECTION Create RangerMSP (:Crmasset) node labels
+MERGE (m:Model {name:'None Provided'})
+MERGE (v:Vendor {name:'None Available'})
+MERGE (cat:Catalias {name:'None Provided'})
+MERGE (ha:Crmhaas {name:'HaaS Asset'})
+
+//***EDIT-HERE*** If these don't match your Opportunity status codes
+//SECTION Create OppStatus
+MERGE (:Oppstatus {id:1,name:'Open'})
+MERGE (:Oppstatus {id:2,name:'Won'})
+MERGE (:Oppstatus {id:3,name:'Lost'})
+MERGE (:Oppstatus {id:4,name:'Cancelled/On-Hold'})
+;
+
+//SECTION Create Ticket node LABELS:
+MERGE (nomgr:Crmemployee {name:'None Provided',acctrecid:'None Provided'})
+MERGE (nocmp:Company {name:'None Provided',acctrecid:'None Provided'})
+MERGE (nocon:Contact {name:'None Provided',acctrecid:'None Provided'})
+MERGE (nosrv:Ticketsource {name:'None Provided'})
+MERGE (notyp:Tickettype {name:'None Provided'})
+MERGE (ts:Ticketstatus {statcode:'None Provided',name:'None Provided'})
+MERGE (tc:Ticketcategory {name:'None Provided'})
+;
+
+//***EDIT-HERE*** If these don't match your contract status codes
+//SECTION Create RangerMSP Contract Status Node Labels:
+MERGE (nocontr:Crmcontract {name:'None Provided',recid:'None Provided'})
+MERGE (csnp:Crmcontractstatus {name:'Not Provided',value:'NP'})
+MERGE (csa:Crmcontractstatus {name:'Active',value:'A'})
+MERGE (csc:Crmcontractstatus {name:'Cancelled',value:'C'})
+MERGE (css:Crmcontractstatus {name:'Suspended',value:'S'})
+MERGE (cst:Crmcontractstatus {name:'Completed',value:'T'})
+;
+
+//***EDIT-HERE*** Ranger doesn't have a Contract Category - I create one in the graph by matching codes/keywords in another pipeline.
+// You can edit these to suit your needs, or remove this section if it isn't applicable for you.
+//SECTION Create RangerMSP Contract Category Node Labels:
+MERGE (csnp:Crmcontractcat {name:'Not Provided'})
+MERGE (:Crmcontractcat {name:'Account Management'})
+MERGE (:Crmcontractcat {name:'Backup Plan'})
+MERGE (:Crmcontractcat {name:'Device Plan'})
+MERGE (:Crmcontractcat {name:'HaaS Plan'})
+MERGE (:Crmcontractcat {name:'Internal Operations'})
+MERGE (:Crmcontractcat {name:'Microsoft Azure'})
+MERGE (:Crmcontractcat {name:'Microsoft CSP'})
+MERGE (:Crmcontractcat {name:'Microsoft SPLA'})
+MERGE (:Crmcontractcat {name:'Network Plan'})
+MERGE (:Crmcontractcat {name:'Onboarding'})
+MERGE (:Crmcontractcat {name:'Out of Scope'})
+MERGE (:Crmcontractcat {name:'Private Cloud'})
+MERGE (:Crmcontractcat {name:'Security Plan'})
+MERGE (:Crmcontractcat {name:'Statement of Work'})
+MERGE (:Crmcontractcat {name:'User Awareness Plan'})
+MERGE (:Crmcontractcat {name:'User Plan'})
+;
+
+// SECTION Create (:Billkind) and (:Billstage) nodes
+MERGE (bkb:Billkind {name:'Billable'}) SET bkb.code='B'
+MERGE (bkn:Billkind {name:'Non-Billable'}) SET bkn.code='N'
+MERGE (bsd:Billstage {name:'Draft'}) SET bsd.code='D'
+MERGE (bsb:Billstage {name:'Billed'}) SET bsb.code='B'
+;
+
+//***EDIT-HERE*** These are to use Aliases to limit the number of unique manufacturers.  If you import assets from various sources (RMM or other discovery tools)
+//SECTION Add (:Manufacturer) and aliases
+MERGE (mfr:Manufacturer {name:'None Provided'}) SET mfr.aliases=['**NONE DETERMINED**','$(DEFAULT_STRING)','Generic','System manufacturer','To Be Filled By O.E.M.','Unknown','Chassis Manufacture']
+;
+MERGE (mfr:Manufacturer {name:'Aerohive'})
+;
+MERGE (mfr:Manufacturer {name:'Asus'}) SET mfr.aliases=['ASUSTeK COMPUTER INC.','ASUS']
+;
+MERGE (mfr:Manufacturer {name:'APC'}) SET mfr.aliases=['American Power Conversion Corp.']
+;
+MERGE (mfr:Manufacturer {name:'Apple'}) SET mfr.aliases=['Apple Inc.','Apple Inc.']
+;
+MERGE (mfr:Manufacturer {name:'Aruba Networks'}) SET mfr.aliases=['Aruba']
+;
+MERGE (mfr:Manufacturer {name:'BitDefender'}) SET mfr.aliases=['Bitdefender']
+;
+MERGE (mfr:Manufacturer {name:'Brother'}) SET mfr.aliases=['Brother Industries, Ltd.','Brother Industries, Ltd.']
+;
+MERGE (mfr:Manufacturer {name:'Canon'}) SET mfr.aliases=['CANON Inc.']
+;
+MERGE (mfr:Manufacturer {name:'Cisco'}) SET mfr.aliases=['ciscoSystems']
+;
+MERGE (mfr:Manufacturer {name:'CloudWell'}) SET mfr.aliases=['cloudwell']
+;
+MERGE (mfr:Manufacturer {name:'CyberPower'}) SET mfr.aliases=['Cyber Power System Inc.']
+;
+MERGE (mfr:Manufacturer {name:'Dell'}) SET mfr.aliases=['Dell Inc.','Dell EMC']
+;
+MERGE (mfr:Manufacturer {name:'Equus Computer'}) SET mfr.aliases=['Equus Computer Systems']
+;
+MERGE (mfr:Manufacturer {name:'Extreme Networks'}) SET mfr.aliases=['Extreme']
+;
+MERGE (mfr:Manufacturer {name:'Go Daddy'}) SET mfr.aliases=['GoDaddy']
+;
+MERGE (mfr:Manufacturer {name:'Gigabyte Technology'}) SET mfr.aliases=['Gigabyte Technology Co., Ltd.']
+;
+MERGE (mfr:Manufacturer {name:'HP'}) SET mfr.aliases=['Hewlett-Packard','Hewlet Packard','Hewlett-Packard Printer']
+;
+MERGE (mfr:Manufacturer {name:'Hewlett Packard Enterprise'}) SET mfr.aliases=['HPE']
+;
+MERGE (mfr:Manufacturer {name:'Intel'}) SET mfr.aliases=['INTELR','INTEL_']
+;
+MERGE (mfr:Manufacturer {name:'Juniper Networks'}) SET mfr.aliases=['Juniper']
+;
+MERGE (mfr:Manufacturer {name:'Konica Minolta'}) SET mfr.aliases=['konica minolta holdings, inc.']
+;
+MERGE (mfr:Manufacturer {name:'Kyocera'}) SET mfr.aliases=['KYOCERA Corporation']
+;
+MERGE (mfr:Manufacturer {name:'Logitech'}) SET mfr.aliases=['LogiTech']
+;
+MERGE (mfr:Manufacturer {name:'Lenovo'}) SET mfr.aliases=['LENOVO','Lenonvo']
+;
+MERGE (mfr:Manufacturer {name:'Marvell'}) SET mfr.aliases=['Marvell Semiconductor Inc.']
+;
+MERGE (mfr:Manufacturer {name:'Microsoft'}) SET mfr.aliases=['Microsoft Corporation']
+;
+MERGE (mfr:Manufacturer {name:'Mitel'}) SET mfr.aliases=['Mitel, Corp.']
+;
+MERGE (mfr:Manufacturer {name:'Oki Data'}) SET mfr.aliases=['Oki Data Corporation','OKI']
+;
+MERGE (mfr:Manufacturer {name:'Pivot3'}) SET mfr.aliases=['NexGen Storage','PIVOT3 STORAGE','NexGen / Pivot3']
+;
+MERGE (mfr:Manufacturer {name:'Ricoh'}) SET mfr.aliases=['RICOH Co. Ltd.','RICOH Co. Ltd. Printer']
+;
+MERGE (mfr:Manufacturer {name:'Ruckus'}) SET mfr.aliases=['Ruckus Wireless, Inc.']
+;
+MERGE (mfr:Manufacturer {name:'Samsung'}) SET mfr.aliases=['SAMSUNG ELECTRONICS CO., LTD.','Samsung Techwin Co., Ltd.']
+;
+MERGE (mfr:Manufacturer {name:'Epson'}) SET mfr.aliases=['SEIKO EPSON CORPORATION','Seiko-Epson']
+;
+MERGE (mfr:Manufacturer {name:'Sharp'}) SET mfr.aliases=['SHARP Corporation']
+;
+MERGE (mfr:Manufacturer {name:'SonicWALL'}) SET mfr.aliases=['SonicWALL, Inc','SonicWALL, Inc.','Dell SonicWALL']
+;
+MERGE (mfr:Manufacturer {name:'Sony'}) SET mfr.aliases=['Sony Corporation']
+;
+MERGE (mfr:Manufacturer {name:'Starfield'}) SET mfr.aliases=['Starfield Secure Certificate Autority']
+;
+MERGE (mfr:Manufacturer {name:'Supermicro'}) SET mfr.aliases=['Super Micro Computer']
+;
+MERGE (mfr:Manufacturer {name:'Toshiba'}) SET mfr.aliases=['TOSHIBA']
+;
+MERGE (mfr:Manufacturer {name:'TP-LINK'}) SET mfr.aliases=['TP-LInk']
+;
+MERGE (mfr:Manufacturer {name:'Ubiquiti Networks'}) SET mfr.aliases=['Ubiquiti']
+;
+MERGE (mfr:Manufacturer {name:'ViaVideo'}) SET mfr.aliases=['ViaVideo Communications, Inc.']
+;
+MERGE (mfr:Manufacturer {name:'VMware'}) SET mfr.aliases=['VMware Inc.','VMware Inc','Vmware Inc.','VMware, Inc.','Vmware, Inc.']
+;
+MERGE (mfr:Manufacturer {name:'WattBox'}) SET mfr.aliases=['WATTBOX','Wattbox']
+;
+MERGE (mfr:Manufacturer {name:'Zebra'}) SET mfr.aliases=['Zebra Technologies Corporation','Zebra Technologies']
+;
+
+// SET all aliases to lowercase
+MATCH (mfr:Manufacturer) WHERE mfr.aliases IS NOT NULL
+WITH mfr,apoc.text.join(mfr.aliases,'{|}') as thelist
+SET mfr.aliases=split(toLower(thelist),'{|}')
+RETURN mfr.name,mfr.aliases
+;
+
+//SECTION  Create (:Assetcategory) and (:Catalias for alias)
+
+MERGE (ac:Assetcategory {name:'None Provided'})
+;
+MERGE (ac:Assetcategory {name:'Contract'})
+MERGE (cc:Catalias {name:'Hardware warranty / contr'})
+MERGE (cc)-[:ALIAS_OF]->(ac)
+MERGE (cc2:Catalias {name:'MRR Contract'})
+MERGE (cc2)-[:ALIAS_OF]->(ac)
+;
+
+MERGE (ac:Assetcategory {name:'License'})
+MERGE (cc:Catalias {name:'Software License'})
+MERGE (cc)-[:ALIAS_OF]->(ac)
+;
+
+MERGE (ac:Assetcategory {name:'Other'})
+MERGE (cc:Catalias {name:'Gold Image'})
+MERGE (cc)-[:ALIAS_OF]->(ac)
+;
+
+MERGE (ac:Assetcategory {name:'Hardware'})
+MERGE (cc:Catalias {name:'PDU'})
+MERGE (cc)-[:ALIAS_OF]->(ac)
+MERGE (cc2:Catalias {name:'Power/UPS'})
+MERGE (cc2)-[:ALIAS_OF]->(ac)
+MERGE (cc3:Catalias {name:'UPS'})
+MERGE (cc3)-[:ALIAS_OF]->(ac)
+MERGE (cc4:Catalias {name:'Firewall / Security'})
+MERGE (cc4)-[:ALIAS_OF]->(ac)
+MERGE (cc5:Catalias {name:'Firewall / Security Appli'})
+MERGE (cc6)-[:ALIAS_OF]->(ac)
+;
+
+MERGE (ac:Assetcategory {name:'Hardware'})
+with ac
+MATCH (cc:Catalias) where cc.name = 'Notebook' or cc.name contains 'Workstation' or cc.name contains 'Zero' or cc.name contains 'Switch' or cc.name contains 'Access Point'
+or cc.name contains 'Thin Client' or cc.name contains 'Backup Appliance' or cc.name contains 'Mini PC' or cc.name contains 'Monitor' or cc.name contains 'Storage System'
+or cc.name = 'PC' or cc.name contains 'Phone/VoIP' or cc.name contains 'Printer' or cc.name contains 'Pulled-Gear' or cc.name contains 'Tablet'
+MERGE (cc)-[:ALIAS_OF]->(ac)
+;
+
+MERGE (ac:Assetcategory {name:'Subscription'})
+MERGE (cc:Catalias {name:'Service Subscription'})
+MERGE (cc)-[:ALIAS_OF]->(ac)
+MERGE (cc2:Catalias {name:'Software Subscription'})
+MERGE (cc2)-[:ALIAS_OF]->(ac)
+;
+MERGE (cc3:Catalias {name:'Certificates'})
+MERGE (cc3)-[:ALIAS_OF]->(ac)
+MERGE (cc4:Catalias {name:'Domain Registration'})
+MERGE (cc4)-[:ALIAS_OF]->(ac)
+;
+
+MERGE (ac:Assetcategory {name:'Virtual Machine'})
+MERGE (cc:Catalias {name:'Virtual Desktop'})
+MERGE (cc)-[:ALIAS_OF]->(ac)
+MERGE (cc2:Catalias {name:'Virtual Server'})
+MERGE (cc2)-[:ALIAS_OF]->(ac)
+;
+
+MERGE (ac:Assetcategory {name:'Voice'})
+MERGE (cc:Catalias {name:'Phone/VoIP'})
+MERGE (cc)-[:ALIAS_OF]->(ac)
+;
+
+MERGE (ac:Assetcategory {name:'Shelf Device'})
+;
+MERGE (ac:Assetcategory {name:'Loaner Device'})
+;
+MERGE (ac:Assetcategory {name:'Reclaimed Hardware'})
+;
+
+
+//SECTION Create (:Assettype) and (:Assetclass)
+MERGE (at:Assettype {name:'None Provided'})
+;
+
+MERGE (ac:Assetclass {name:'Infrastructure'})
+MERGE (at:Assettype {name:'Azure'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Backup Appliance'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Firewall'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'PBX'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Onsite Manager'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Router'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Storage Device'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Virtual Server'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Wireless (Controller)'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Wireless (Access Point)'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Server'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Switch'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'UPS'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'IPMI'})
+MERGE (at)-[:OF_CLASS]->(ac)
+;
+
+
+MERGE (ac:Assetclass {name:'Endpoint'})
+MERGE (at:Assettype {name:'Desktop'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Mini PC'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Tablet'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Virtual Desktop'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Workstation'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Notebook'})
+MERGE (at)-[:OF_CLASS]->(ac)
+;
+
+
+MERGE (ac:Assetclass {name:'Peripheral'})
+MERGE (at:Assettype {name:'Display'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Peripheral'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Printer'})
+MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Scanner'})
+MERGE (at)-[:OF_CLASS]->(ac)
+;
+
+
+MERGE (at:Assettype {name:'Contract'})
+;
+MERGE (at:Assettype {name:'Certificate'})
+;
+MERGE (at:Assettype {name:'Book'})
+;
+MERGE (at:Assettype {name:'Domain Registration'})
+;
+MERGE (at:Assettype {name:'Gold Image'})
+;
+MERGE (at:Assettype {name:'IPMI'})
+;
+MERGE (at:Assettype {name:'Maint/Warranty'})
+;
+MERGE (at:Assettype {name:'Multifunction'})
+;
+MERGE (at:Assettype {name:'Handset'})
+;
+MERGE (at:Assettype {name:'Mobile'})
+;
+MERGE (at:Assettype {name:'Office 365'})
+;
+MERGE (at:Assettype {name:'Operational Technology'})
+;
+MERGE (at:Assettype {name:'Other'})
+;
+MERGE (at:Assettype {name:'Power (Controller)'})
+;
+MERGE (at:Assettype {name:'Power (PDU)'})
+;
+MERGE (at:Assettype {name:'Power (PSU)'})
+;
+MERGE (at:Assettype {name:'Sensor'})
+;
+MERGE (at:Assettype {name:'Service'})
+;
+MERGE (at:Assettype {name:'Software'})
+;
+MERGE (at:Assettype {name:'Thin Client'})
+;
+MERGE (at:Assettype {name:'Vehicle'})
+;
+MERGE (at:Assettype {name:'VPN'})
+;
+MERGE (at:Assettype {name:'vCenter Server Appliance'})
+;
+MERGE (at:Assettype {name:'Zero Client'})
+;
+
+
+//SECTION MERGE (li:Crmitem)
+MATCH (cdl:Crmdataload {name:'CommitCRM'})
+set cdl.iteminit=timestamp()
+set cdl.itemrefresh=timestamp()
+;
+
+//SECTION MERGE (li:Crmcharge)
+MATCH (cdl:Crmdataload {name:'CommitCRM'})
+set cdl.chargeinit=timestamp()
+set cdl.chargerefresh=timestamp()
+;
+
+// SECTION Create Itemtypegroup prereq nodes
+MERGE (itgf:Itemtypegroup {name:'Labor'}) SET itgf.code='F'
+MERGE (itgx:Itemtypegroup {name:'Expense'}) SET itgx.code='X'
+MERGE (itgp:Itemtypegroup {name:'Part'}) SET itgp.code='P'
+;
+
+
+
+
+</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>464</xloc>
+      <yloc>48</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>3rd Party Indexes</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>
+// Create 3rd party (and custom BlueNet) Indexes and constraints
+
+//Adsi and Microsoft 365
+
+CALL apoc.schema.assert(null,{Adsiuser:['guid'],M365mailbox:['guid']},False)
+;
+CALL apoc.schema.assert({Adsiuser:['samaccountname'],Adsiuser:['upn'],Adsiuser:['addresses'],M365mailbox:['upn'],M365mailbox:['addresses'],M365mailbox:['primarysmtp'],M365product:['stringid'],M365product:['primarysmtp'],M365product:['addresses'],M365product:['enabled']},null,False)
+;
+CALL apoc.schema.assert({Accepteddomain:['acctrecid'],Accepteddomain:['name']},null,False)
+;
+
+CALL apoc.schema.assert({Reportingcontact:['upn'],Reportingcontact:['company'],Reportingcontact:['name']},null,False)
+;
+CALL apoc.schema.assert({Reportingasset:['cmkmonitor'],Reportingasset:['recid'],Reportingasset:['name'],Reportingasset:['company']},null,False)
+;
+CALL apoc.schema.assert(null,{Reportingasset:['recid']},False)
+;
+
+CALL apoc.schema.assert({M365device:['name'],M365device:['guid'],M365device:['acctrecid'],M365device:['updatedon'],M365device:['owner']},null,False)
+;
+CALL apoc.schema.assert({Trustlevel:['name'],Trusttype:['name'],Ostype:['name']},null,False)
+;
+
+//BlueNet
+CALL apoc.schema.assert(null,{Clientdomain:['name']},False)
+;
+CALL apoc.schema.assert(null,{Reportingcontact:['upn']},False)
+;
+CALL apoc.schema.assert(null,{Publicdomains:['names']},False)
+;
+
+//Checkmk
+CALL apoc.schema.assert(null,{Cmkpath:['name'],Cmkconnection:['name'],Cmknodetype:['name'],Cmkhostgroup:['name'],Cmkhosttag:['name'],Cmkhost:['name'],Cmksite:['name']},False)
+;
+
+// Connectwise Control (Screenconnect)
+CALL apoc.schema.assert(null,{Screenconnect:['id']},False)
+;
+CALL apoc.schema.assert({Screenconnect:['serial'],Screenconnect:['name'],Screenconnect:['acctrecid'],Screenconnect:['domain'],Screenconnect:['client']},null,False)
+;
+
+//DropSuite
+CALL apoc.schema.assert(null,{Dsseat:['email']},False)
+;
+
+
+//Ironscales
+CALL apoc.schema.assert(null,{Isuser:['email'],Istag:['name']},False)
+;
+
+
+//NinjaOne RMM
+CALL apoc.schema.assert(null,{Rmmdevice:['id'],Rmmpatch:['id']},False)
+;
+CALL apoc.schema.assert({Rmmdevice:['lastuser'],Rmmdevice:['serial'],Rmmdevice:['name'],Rmmdevice:['dnsname']},null,False)
+;
+
+//Quotewerks
+CALL apoc.schema.assert(null,{Qwdocument:['number']},False)
+;
+CALL apoc.schema.assert(null,{Qwquotestatus:['name'],Qwdocstatus:['name'],Qwtype:['name']},False)
+;
+CALL apoc.schema.assert(null,{Qwdocument:['number']},False)
+;
+CALL apoc.schema.assert({Qwdocument:['customer']},null,False)
+;
+</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>656</xloc>
+      <yloc>48</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>3rd Party pre-requisites</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>// Create Blue Net Custom Labels
+MERGE (:Bluenetexpress {name:'Blue Net Express'})
+;
+
+//SECTION Create M365product Node Labels
+MERGE (n:M365product {stringid:'None Provided',guid:'None Provided'})
+SET n.url='https://docs.microsoft.com/en-us/azure/active-directory/enterprise-users/licensing-service-plan-reference',n.name='None Provided'
+;
+
+// Set LIMITERS
+MATCH (cdl:Crmdataload {name:'CommitCRM'})
+SET cdl.ticketcount=101000
+SET cdl.datarefresh=timestamp()
+;
+
+//SECTION Create Monitoring Analysis Node Labels:
+MERGE (am:Monitoring {value:'A'}) SET am.name='Actively Monitored'
+MERGE (cmk:Monitoring {value:'Y'}) SET cmk.name='CMK Monitoring Required'
+MERGE (rmm:Monitoring {value:'NR'}) SET rmm.name='Ninja RMM Required'
+MERGE (nomon:Monitoring {value:'N'}) SET nomon.name='No Monitoring Required'
+MERGE (monreq:Monitoring {value:'R'}) SET monreq.name='Monitoring Required'
+MERGE (cmkmis:Monitoring {value:'-Y'}) SET cmkmis.name='Missing from CheckMK'
+MERGE (rmspmis:Monitoring {value:'-C'}) SET rmspmis.name='Missing from RangerMSP'
+MERGE (rmmmis:Monitoring {value:'-N'}) SET rmmmis.name='Missing from Ninja'
+MERGE (nomonlbl:Monitoring {name:'No Monitor Label',value:'-NML'})
+;
+
+// SECTION Create CheckMK pre-req nodes
+MERGE (cmks:Cmksite {name:'None'})
+MERGE (cmkpath:Cmkpath {name:'None'})
+MERGE (conn:Cmkconnection {name:'None'})
+MERGE (cmknt:Cmknodetype {name:'None'})
+MERGE (ch:Cmkhost {name:'None'})
+MERGE (cmkhg:Cmkhostgroup {name:'None'})
+MERGE (ssc:Servicestate {name:'Critical',state:'CRIT'})
+MERGE (ssu:Servicestate {name:'Unknown',state:'UNKN'})
+MERGE (ssw:Servicestate {name:'Warning',state:'WARN'})
+MERGE (hsun:Hoststate {name:'Unreachable',state:'UNREACH'})
+MERGE (hsdwn:Hoststate {name:'Down',state:'DOWN'})
+MERGE (prba:Problemack {name:'Acknowledged'})
+MERGE (prbn:Problemack {name:'Unacknowledged'})
+;
+
+//CLEAN UP JOB LOGGING
+MATCH (l:N4jlogging) WHERE l.jobname&lt;&gt;l.transname// and l.jobstatus &lt;&gt; 'finished'
+MATCH (l)-[r:LAST_JOB_SUCCESS]-(s:N4jlogging {name:'Success'})
+WITH r WHERE r.completed&lt;timestamp()-166400000
+DELETE r
+;
+</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>848</xloc>
+      <yloc>48</yloc>
+      <attributes_hac/>
+    </action>
+  </actions>
+  <hops>
+    <hop>
+      <from>Start</from>
+      <to>Build RangerMSP object Indexes</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>Build RangerMSP object Indexes</from>
+      <to>RangerMSP Pre-requisites</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>RangerMSP Pre-requisites</from>
+      <to>3rd Party Indexes</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>3rd Party Indexes</from>
+      <to>3rd Party pre-requisites</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+  </hops>
+  <notepads>
+  </notepads>
+  <attributes/>
+</workflow>

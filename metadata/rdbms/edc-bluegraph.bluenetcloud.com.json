@@ -1,0 +1,29 @@
+{
+  "rdbms": {
+    "GENERIC": {
+      "databaseName": "",
+      "pluginId": "GENERIC",
+      "accessType": 0,
+      "hostname": "",
+      "password": "AES 51njq1pOaODFYRL84FdTSQZWG0pUdQSeIVMR9llugT1IdW37uq5qLn7gU/ttq/pA28dtCttchSAjLQo/H9GVYQ\u003d\u003d",
+      "port": "1521",
+      "pluginName": "Generic database",
+      "attributes": {
+        "IS_CLUSTERED": "N",
+        "SUPPORTS_TIMESTAMP_DATA_TYPE": "Y",
+        "DATABASE_DIALECT_ID": "Generic database",
+        "FORCE_IDENTIFIERS_TO_LOWERCASE": "N",
+        "PRESERVE_RESERVED_WORD_CASE": "Y",
+        "FORCE_IDENTIFIERS_TO_UPPERCASE": "N",
+        "PORT_NUMBER": "1521",
+        "CUSTOM_DRIVER_CLASS": "org.neo4j.jdbc.Driver",
+        "USE_POOLING": "N",
+        "QUOTE_ALL_FIELDS": "N",
+        "CUSTOM_URL": "jdbc:neo4j:bolt://edc-bluegraph.bluenetcloud.com:7687",
+        "SUPPORTS_BOOLEAN_DATA_TYPE": "Y"
+      },
+      "username": "neo4j"
+    }
+  },
+  "name": "edc-bluegraph.bluenetcloud.com"
+}

@@ -1,0 +1,884 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pipeline>
+  <info>
+    <name>RangerMSP-update-Crmticket-nodes</name>
+    <name_sync_with_filename>Y</name_sync_with_filename>
+    <description/>
+    <extended_description/>
+    <pipeline_version/>
+    <pipeline_type>Normal</pipeline_type>
+    <pipeline_status>0</pipeline_status>
+    <parameters>
+    </parameters>
+    <capture_transform_performance>N</capture_transform_performance>
+    <transform_performance_capturing_delay>1000</transform_performance_capturing_delay>
+    <transform_performance_capturing_size_limit>100</transform_performance_capturing_size_limit>
+    <created_user>-</created_user>
+    <created_date>2020/01/03 22:40:31.737</created_date>
+    <modified_user>admin</modified_user>
+    <modified_date>2020/01/05 12:32:41.443</modified_date>
+    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
+    <is_key_private>N</is_key_private>
+  </info>
+  <notepads>
+  </notepads>
+  <order>
+    <hop>
+      <from>Query RangerMSP Item (tickets) table</from>
+      <to>Create (:Ticket) nodes for new items</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get Last :Ticket</from>
+      <to>Query RangerMSP Item (items) table (mod)</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Query RangerMSP Item (items) table (mod)</from>
+      <to>Modify (:Ticket) nodes for modified tickets</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get job variables</from>
+      <to>Update Job/TFLogging</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get Last :Ticket</from>
+      <to>Query RangerMSP Item (tickets) table</to>
+      <enabled>Y</enabled>
+    </hop>
+  </order>
+  <transform>
+    <name>Create (:Ticket) nodes for new items</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $tickets as row
+OPTIONAL MATCH (e:Crmemployee {acctrecid:row.WORKERID})
+OPTIONAL MATCH (a1:Company {acctrecid:row.CARDID})
+OPTIONAL MATCH (a:Company {acctrecid:coalesce(a1.acctrecid,'None Provided')})
+OPTIONAL MATCH (c1:Contact {acctrecid:row.CONTACTID})
+OPTIONAL MATCH (c:Contact {acctrecid:coalesce(c1.acctrecid,'None Provided')})
+OPTIONAL MATCH (stat1:Ticketstatus {statcode:row.STATUS})
+OPTIONAL MATCH (stat:Ticketstatus {statcode:coalesce(stat1.statcode,'None Provided')})
+OPTIONAL MATCH (prio1:Ticketpriority {statcode:row.PRIORITY})
+OPTIONAL MATCH (prio:Ticketpriority {statcode:coalesce(prio1.statcode,'None Provided')})
+//OPTIONAL MATCH (ca1:Crmasset {recid:row.ASSETRECID})
+OPTIONAL MATCH (ca:Crmasset {recid:coalesce(row.ASSETRECID,'None Provided')})
+OPTIONAL MATCH (tc:Crmcontract {recid:row.BCRECID})
+OPTIONAL MATCH (L1:Ticketlabel {labelcode:row.L1})
+OPTIONAL MATCH (L2:Ticketlabel {labelcode:row.L2})
+OPTIONAL MATCH (L3:Ticketlabel {labelcode:row.L3})
+OPTIONAL MATCH (L4:Ticketlabel {labelcode:row.L4})
+OPTIONAL MATCH (L5:Ticketlabel {labelcode:row.L5})
+OPTIONAL MATCH (L6:Ticketlabel {labelcode:row.L6})
+OPTIONAL MATCH (L7:Ticketlabel {labelcode:row.L7})
+OPTIONAL MATCH (L8:Ticketlabel {labelcode:row.L8})
+MERGE (src:Ticketsource {name:coalesce(row.SOURCE,'None Provided')})
+MERGE (tcat:Ticketcategory {name:coalesce(row.CATEGORY,'None Provided')})
+MERGE (type:Tickettype {name:coalesce(row.KIND,'None Provided')})
+MERGE (t:Ticket {ticketnumber:row.TICKETNO,recid:row.RECID})
+ON CREATE SET t.manager = e.name,t.openedon=datetime(row.OPENDATETIME).epochmillis,t.closedon=datetime(row.CLOSEDATETIME).epochmillis,
+t.createdon=datetime(row.CREATEDATE).epochmillis,t.updatedon=datetime(row.UPDATEDATE).epochmillis,t.account=a.name,t.contact=c.name,
+t.source = src.name,t.type = type.name,t.status = stat.name,t.priority=prio.name,t.service=row.USER1,t.host=row.USER2,t.automation=row.USER3,t.cause=row.CAUSE,
+t.duedate=datetime(row.DUEDATETIME).epochmillis,t.problem=trim(left(row.PROBLEM,250)),t.createdby=row.CREATEUSER
+WITH *
+FOREACH (ignoreMe in CASE WHEN e.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:MANAGED_BY]->(e))
+FOREACH (ignoreMe in CASE WHEN a.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_OF_CLIENT]->(a))
+FOREACH (ignoreMe in CASE WHEN c.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_FOR]->(c))
+FOREACH (ignoreMe in CASE WHEN ca.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_ASSET]->(ca))
+FOREACH (ignoreMe in CASE WHEN src.name IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_SOURCE]->(src))
+FOREACH (ignoreMe in CASE WHEN tcat.name IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_CATEGORY]->(tcat))
+FOREACH (ignoreMe in CASE WHEN type.name IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_TYPE]->(type))
+FOREACH (ignoreMe in CASE WHEN stat.statcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_STATUS]->(stat))
+FOREACH (ignoreMe in CASE WHEN prio.statcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_PRIORITY]->(prio))
+FOREACH (ignoreMe in CASE WHEN tc.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_CONTRACT]->(tc))
+FOREACH (ignoreMe in CASE WHEN L1.labelcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L1))
+FOREACH (ignoreMe in CASE WHEN L2.labelcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L2))
+FOREACH (ignoreMe in CASE WHEN L3.labelcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L3))
+FOREACH (ignoreMe in CASE WHEN L4.labelcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L4))
+FOREACH (ignoreMe in CASE WHEN L5.labelcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L5))
+FOREACH (ignoreMe in CASE WHEN L6.labelcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L6))
+FOREACH (ignoreMe in CASE WHEN L7.labelcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L7))
+FOREACH (ignoreMe in CASE WHEN L8.labelcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L8))
+;</cypher>
+    <batch_size>500</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>tickets</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>TICKETNO</parameter>
+        <field>TICKETNO</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CARDID</parameter>
+        <field>CARDID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CONTACTID</parameter>
+        <field>CONTACTID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>WORKERID</parameter>
+        <field>WORKERID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>PRIORITY</parameter>
+        <field>PRIORITY</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>CATEGORY</parameter>
+        <field>CATEGORY</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>OPENDATETIME</parameter>
+        <field>OPENDATETIME</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>CLOSEDATETIME</parameter>
+        <field>CLOSEDATETIME</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>STATUS</parameter>
+        <field>STATUS</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>PRIORITY1</parameter>
+        <field>PRIORITY_1</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>KIND</parameter>
+        <field>KIND</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEDATE</parameter>
+        <field>CREATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEUSER</parameter>
+        <field>CREATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEDATE</parameter>
+        <field>UPDATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEUSER</parameter>
+        <field>UPDATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>SOURCE</parameter>
+        <field>SOURCE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ASSETRECID</parameter>
+        <field>ASSETRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER1</parameter>
+        <field>USER1</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER2</parameter>
+        <field>USER2</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER3</parameter>
+        <field>USER3</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>DUEDATETIME</parameter>
+        <field>DUEDATETIME</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>BCRECID</parameter>
+        <field>BCRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>L1</parameter>
+        <field>L1</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L2</parameter>
+        <field>L2</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L3</parameter>
+        <field>L3</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L4</parameter>
+        <field>L4</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L5</parameter>
+        <field>L5</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L6</parameter>
+        <field>L6</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L7</parameter>
+        <field>L7</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L8</parameter>
+        <field>L8</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>LABELSLENGTH</parameter>
+        <field>LABELSLENGTH</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>CAUSE</parameter>
+        <field>CAUSE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>PROBLEM</parameter>
+        <field>PROBLEM</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>720</xloc>
+      <yloc>144</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get Last :Ticket</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
+OPTIONAL MATCH (l:Ticket)
+WITH max(coalesce(l.createdon,0)) as lastnewticket, max(coalesce(l.updatedon,0)) as lastmodifiedticket,cdl
+WITH COLLECT(lastnewticket)+COLLECT(lastmodifiedticket)+cdl.crminit as tstamps
+UNWIND tstamps as ts
+WITH min(ts) as lastmodifiedticket
+WITH apoc.date.format(coalesce(lastmodifiedticket,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastmodifiedticket
+//RETURN '1990-08-14 14:34:40.040' as lastmodifiedticket
+RETURN lastmodifiedticket
+;</cypher>
+    <batch_size/>
+    <read_only>Y</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>N</unwind>
+    <unwind_map/>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings/>
+    <returns>
+      <return>
+        <name>lastmodticket</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>176</xloc>
+      <yloc>192</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get job variables</name>
+    <type>GetVariable</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>jobname</name>
+        <variable> ${Internal.Workflow.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>transname</name>
+        <variable>${Internal.Pipeline.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tdir</name>
+        <variable>${Internal.Pipeline.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jdir</name>
+        <variable>${Internal.Workflow.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jfilename</name>
+        <variable>${Internal.Workflow.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tfilename</name>
+        <variable>${Internal.Pipeline.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>80</xloc>
+      <yloc>32</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Modify (:Ticket) nodes for modified tickets</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $tickets as row
+MATCH (t:Ticket {ticketnumber:row.TICKETNO})
+WITH *,COLLECT ([row.L1,row.L2,row.L3,row.L4,row.L5,row.L6,row.L7,row.L8]) as LABEL
+OPTIONAL MATCH (e:Crmemployee {acctrecid:row.WORKERID})
+OPTIONAL MATCH (a1:Company {acctrecid:row.CARDID})
+OPTIONAL MATCH (a:Company {acctrecid:coalesce(a1.acctrecid,'None Provided')})
+OPTIONAL MATCH (c1:Contact {acctrecid:row.CONTACTID})
+OPTIONAL MATCH (c:Contact {acctrecid:coalesce(c1.acctrecid,'None Provided')})
+OPTIONAL MATCH (ca1:Crmasset {recid:row.ASSETRECID})
+OPTIONAL MATCH (ca:Crmasset {recid:coalesce(ca1.recid,'None Provided')})
+OPTIONAL MATCH (tc:Crmcontract {recid:row.BCRECID})
+OPTIONAL MATCH (stat1:Ticketstatus {statcode:row.STATUS})
+OPTIONAL MATCH (stat:Ticketstatus {statcode:coalesce(stat1.statcode,'None Provided')})
+OPTIONAL MATCH (cat1:Ticketcategory {name:row.CATEGORY})
+OPTIONAL MATCH (cat:Ticketcategory {name:coalesce(cat1.name,'None Provided')})
+OPTIONAL MATCH (prio1:Ticketpriority {statcode:row.PRIORITY})
+OPTIONAL MATCH (prio:Ticketpriority {statcode:coalesce(prio1.statcode,'None Provided')})
+//MERGE (t:Ticket {ticketnumber:row.TICKETNO})
+OPTIONAL MATCH (t)-[mbr:MANAGED_BY]-(oe:Crmemployee)
+OPTIONAL MATCH (t)-[tor:TICKET_OF_CLIENT]-(oa:Company)
+OPTIONAL MATCH (t)-[tfr:TICKET_FOR]-(oc:Contact)
+OPTIONAL MATCH (t)-[tsr:TICKET_SOURCE]-(ots:Ticketsource)
+OPTIONAL MATCH (t)-[tcatr:TICKET_CATEGORY]-(otcat:Ticketcategory)
+OPTIONAL MATCH (t)-[ttr:TICKET_TYPE]-(ott:Tickettype)
+OPTIONAL MATCH (t)-[tcr:TICKET_CONTRACT]-(otc:Crmcontract)
+OPTIONAL MATCH (t)-[tstr:TICKET_STATUS]-(otst:Ticketstatus)
+OPTIONAL MATCH (t)-[tpr:TICKET_PRIORITY]-(otp:Ticketpriority)
+OPTIONAL MATCH (t)-[tar:TICKET_ASSET]-(ota:Crmasset)
+OPTIONAL MATCH (t)-[tlr:TICKET_HAS_LABEL]->(otl:Ticketlabel)
+OPTIONAL MATCH (L1:Ticketlabel {labelcode:row.L1})
+OPTIONAL MATCH (L2:Ticketlabel {labelcode:row.L2})
+OPTIONAL MATCH (L3:Ticketlabel {labelcode:row.L3})
+OPTIONAL MATCH (L4:Ticketlabel {labelcode:row.L4})
+OPTIONAL MATCH (L5:Ticketlabel {labelcode:row.L5})
+OPTIONAL MATCH (L6:Ticketlabel {labelcode:row.L6})
+OPTIONAL MATCH (L7:Ticketlabel {labelcode:row.L7})
+OPTIONAL MATCH (L8:Ticketlabel {labelcode:row.L8})
+MERGE (src:Ticketsource {name:coalesce(row.SOURCE,'None Provided')})
+MERGE (tcat:Ticketcategory {name:coalesce(row.CATEGORY,'None Provided')})
+MERGE (tt:Tickettype {name:coalesce(row.KIND,'None Provided')})
+WITH *
+// Next, we remove relationships of the (:Ticket) that are no longer valid
+FOREACH (ignoreMe in CASE WHEN oe.acctrecid IS NULL or (row.WORKERID &lt;&gt; oe.acctrecid) THEN [1] ELSE [] END | DELETE mbr)
+FOREACH (ignoreMe in CASE WHEN oa.acctrecid IS NULL or (row.CARDID &lt;&gt; oa.acctrecid) THEN [1] ELSE [] END | DELETE tor)
+FOREACH (ignoreMe in CASE WHEN coalesce(oc.acctrecid,'isnull') &lt;&gt; coalesce(row.CONTACTID,'isnull')  THEN [1] ELSE [] END | DELETE tfr)
+FOREACH (ignoreMe in CASE WHEN ots.name IS NULL or (row.SOURCE &lt;&gt; ots.name)  THEN [1] ELSE [] END | DELETE tsr)
+FOREACH (ignoreMe in CASE WHEN coalesce(otc.recid,'isnull') &lt;&gt; coalesce(row.BCRECID,'isnull')  THEN [1] ELSE [] END | DELETE tcr)
+FOREACH (ignoreMe in CASE WHEN ott.name IS NULL or (row.KIND &lt;&gt; ott.name)  THEN [1] ELSE [] END | DELETE ttr)
+FOREACH (ignoreMe in CASE WHEN otst.statcode IS NULL or (stat.statcode &lt;&gt; otst.statcode)  THEN [1] ELSE [] END | DELETE tstr)
+FOREACH (ignoreMe in CASE WHEN otp.statcode IS NULL or (row.STATUS &lt;&gt; otp.statcode)  THEN [1] ELSE [] END | DELETE tpr)
+FOREACH (ignoreMe in CASE WHEN coalesce(otcat.name,'isnull') &lt;&gt; coalesce(row.CATEGORY,'isnull')  THEN [1] ELSE [] END | DELETE tcatr)
+FOREACH (ignoreMe in CASE WHEN ota.recid IS NULL or (row.ASSETRECID &lt;&gt; ota.recid)  THEN [1] ELSE [] END | DELETE tar)
+FOREACH (ignoreMe in CASE WHEN NOT (otl.labelcode in (LABEL)) THEN [1] ELSE [] END | DELETE tlr)
+// Next, we modify properties on the (:Ticket) node that have changed
+FOREACH (ignoreMe in CASE WHEN coalesce(t.manager,'isnull') &lt;&gt; coalesce(e.name,'isnull') THEN [1] ELSE [] END | SET t.manager=e.name)
+//FOREACH (ignoreMe in CASE WHEN coalesce(t.recid,'isnull') &lt;&gt; coalesce(row.RECID,'isnull') THEN [1] ELSE [] END | SET t.recid=row.RECID)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.openedon,'isnull') &lt;&gt; coalesce(row.OPENDATETIME,'isnull') THEN [1] ELSE [] END | SET t.openedon=datetime(row.OPENDATETIME).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.closedon,'isnull') &lt;&gt; coalesce(row.CLOSEDATETIME,'isnull') THEN [1] ELSE [] END | SET t.closedon=datetime(row.CLOSEDATETIME).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.createdon,'isnull') &lt;&gt; coalesce(row.CREATEDATE,'isnull') THEN [1] ELSE [] END | SET t.createdon=datetime(row.CREATEDATE).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.updatedon,'isnull') &lt;&gt; coalesce(row.UPDATEDATE,'isnull') THEN [1] ELSE [] END | SET t.updatedon=datetime(row.UPDATEDATE).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.duedate,'isnull') &lt;&gt; coalesce(datetime(row.DUEDATETIME).epochmillis,'isnull') THEN [1] ELSE [] END | SET t.duedate=datetime(row.DUEDATETIME).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.service,'isnull') &lt;&gt; coalesce(row.USER1,'isnull') THEN [1] ELSE [] END | SET t.service=row.USER1)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.host,'isnull') &lt;&gt; coalesce(row.USER2,'isnull') THEN [1] ELSE [] END | SET t.host=row.USER2)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.automation,'isnull') &lt;&gt; coalesce(row.USER3,'isnull') THEN [1] ELSE [] END | SET t.automation=row.USER3)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.account,'isnull') &lt;&gt; coalesce(a.name,'isnull') THEN [1] ELSE [] END | SET t.account=a.name)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.contact,'isnull') &lt;&gt; coalesce(c.name,'isnull') THEN [1] ELSE [] END | SET t.contact=c.name)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.source,'isnull') &lt;&gt; coalesce(src.name,'isnull') THEN [1] ELSE [] END | SET t.source=src.name)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.type,'isnull') &lt;&gt; coalesce(tt.name,'isnull') THEN [1] ELSE [] END | SET t.type=tt.name)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.cause,'isnull') &lt;&gt; coalesce(row.CAUSE,'isnull') THEN [1] ELSE [] END | SET t.cause=row.CAUSE)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.status,'isnull') &lt;&gt; coalesce(stat.name,'isnull') THEN [1] ELSE [] END | SET t.status=stat.name)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.priority,'isnull') &lt;&gt; coalesce(prio.name,'isnull') THEN [1] ELSE [] END | SET t.priority=prio.name)
+FOREACH (ignoreMe in CASE WHEN coalesce(t.problem,'isnull') &lt;&gt; coalesce(trim(left(row.PROBLEM,150)),'isnull') THEN [1] ELSE [] END | SET t.problem=trim(left(row.PROBLEM,250)))
+// Finally, we create any missing relationships for the (:Ticket)
+FOREACH (ignoreMe in CASE WHEN e.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:MANAGED_BY]->(e))
+FOREACH (ignoreMe in CASE WHEN a.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_OF_CLIENT]->(a))
+FOREACH (ignoreMe in CASE WHEN c.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_FOR]->(c))
+FOREACH (ignoreMe in CASE WHEN src.name IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_SOURCE]->(src))
+FOREACH (ignoreMe in CASE WHEN tt.name IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_TYPE]->(tt))
+FOREACH (ignoreMe in CASE WHEN stat.statcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_STATUS]->(stat))
+FOREACH (ignoreMe in CASE WHEN tcat.name IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_CATEGORY]->(tcat))
+FOREACH (ignoreMe in CASE WHEN tc.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_CONTRACT]->(tc))
+FOREACH (ignoreMe in CASE WHEN prio.statcode IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_PRIORITY]->(prio))
+FOREACH (ignoreMe in CASE WHEN ca.name IS NOT NULL THEN [1] ELSE [] END | MERGE (t)-[:TICKET_ASSET]->(ca))
+FOREACH (ignoreMe in CASE WHEN L1.labelcode IS NOT NULL and row.L1&lt;&gt;0 THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L1))
+FOREACH (ignoreMe in CASE WHEN L2.labelcode IS NOT NULL and row.L2&lt;&gt;0 THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L2))
+FOREACH (ignoreMe in CASE WHEN L3.labelcode IS NOT NULL and row.L3&lt;&gt;0 THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L3))
+FOREACH (ignoreMe in CASE WHEN L4.labelcode IS NOT NULL and row.L4&lt;&gt;0 THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L4))
+FOREACH (ignoreMe in CASE WHEN L5.labelcode IS NOT NULL and row.L5&lt;&gt;0 THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L5))
+FOREACH (ignoreMe in CASE WHEN L6.labelcode IS NOT NULL and row.L6&lt;&gt;0 THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L6))
+FOREACH (ignoreMe in CASE WHEN L7.labelcode IS NOT NULL and row.L7&lt;&gt;0 THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L7))
+FOREACH (ignoreMe in CASE WHEN L8.labelcode IS NOT NULL and row.L8&lt;&gt;0 THEN [1] ELSE [] END | MERGE (t)-[:TICKET_HAS_LABEL]->(L8))
+RETURN count(t) as updatedtickets,row.TICKETNO
+;</cypher>
+    <batch_size>5</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>tickets</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>TICKETNO</parameter>
+        <field>TICKETNO</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CARDID</parameter>
+        <field>CARDID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CONTACTID</parameter>
+        <field>CONTACTID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>WORKERID</parameter>
+        <field>WORKERID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>PRIORITY</parameter>
+        <field>PRIORITY</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>CATEGORY</parameter>
+        <field>CATEGORY</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>OPENDATETIME</parameter>
+        <field>OPENDATETIME</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>CLOSEDATETIME</parameter>
+        <field>CLOSEDATETIME</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>STATUS</parameter>
+        <field>STATUS</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>PRIORITY1</parameter>
+        <field>PRIORITY_1</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>KIND</parameter>
+        <field>KIND</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEDATE</parameter>
+        <field>CREATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEUSER</parameter>
+        <field>CREATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEDATE</parameter>
+        <field>UPDATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEUSER</parameter>
+        <field>UPDATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>SOURCE</parameter>
+        <field>SOURCE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ASSETRECID</parameter>
+        <field>ASSETRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER1</parameter>
+        <field>USER1</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER2</parameter>
+        <field>USER2</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER3</parameter>
+        <field>USER3</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>DUEDATETIME</parameter>
+        <field>DUEDATETIME</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>BCRECID</parameter>
+        <field>BCRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>L1</parameter>
+        <field>L1</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L2</parameter>
+        <field>L2</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L3</parameter>
+        <field>L3</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L4</parameter>
+        <field>L4</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L5</parameter>
+        <field>L5</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L6</parameter>
+        <field>L6</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L7</parameter>
+        <field>L7</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>L8</parameter>
+        <field>L8</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>LABELSLENGTH</parameter>
+        <field>LABELSLENGTH</field>
+        <type>Integer</type>
+      </mapping>
+      <mapping>
+        <parameter>CAUSE</parameter>
+        <field>CAUSE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>PROBLEM</parameter>
+        <field>PROBLEM</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>updatedtickets</name>
+        <type>Integer</type>
+        <source_type>Integer</source_type>
+      </return>
+      <return>
+        <name>row.TICKETNO</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>720</xloc>
+      <yloc>224</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query RangerMSP Item (items) table (mod)</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <lookup>Get Last :Ticket</lookup>
+    <limit>0</limit>
+    <sql>SELECT t.RECID,t.TICKETNO,t.CARDID,t.CAUSE,t.CONTACTID,CAST(t.PROBLEM as SQL_VARCHAR) AS PROBLEM,t.DUEDATETIME,t.WORKERID,t.PRIORITY,t.CATEGORY,t.OPENDATETIME,t.CLOSEDATETIME,t.STATUS,t.PRIORITY,t.KIND,t.CREATEDATE,t.CREATEUSER,
+t.UPDATEDATE,t.UPDATEUSER,t.SOURCE,t.ASSETRECID,t.USER1,t.USER2,t.DUEDATETIME,t.USER3,t.BCRECID,
+ASCII(TRIM(SUBSTRING(l.LABELS,1,1))) AS L1,ASCII(TRIM(SUBSTRING(l.LABELS,2,1))) AS L2,ASCII(TRIM(SUBSTRING(l.LABELS,3,1))) AS L3,
+ASCII(TRIM(SUBSTRING(l.LABELS,4,1))) AS L4,ASCII(TRIM(SUBSTRING(l.LABELS,5,1))) AS L5,ASCII(TRIM(SUBSTRING(l.LABELS,5,1))) AS L6,ASCII(TRIM(SUBSTRING(l.LABELS,5,1))) AS L7,
+ASCII(TRIM(SUBSTRING(l.LABELS,5,1))) AS L8,l.LABELSLENGTH FROM Tickets as t LEFT OUTER JOIN LabelLinks as l on l.RECID = t.RECID WHERE t.UPDATEDATE > ?</sql>
+    <variables_active>Y</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>432</xloc>
+      <yloc>224</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query RangerMSP Item (tickets) table</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>Y</execute_each_row>
+    <lookup>Get Last :Ticket</lookup>
+    <limit>0</limit>
+    <sql>SELECT t.RECID,t.TICKETNO,t.CARDID,t.CAUSE,t.CONTACTID,CAST(t.PROBLEM as SQL_VARCHAR) AS PROBLEM,t.DUEDATETIME,t.WORKERID,t.PRIORITY,t.CATEGORY,t.OPENDATETIME,t.CLOSEDATETIME,t.STATUS,t.PRIORITY,t.KIND,t.CREATEDATE,t.CREATEUSER,
+t.UPDATEDATE,t.UPDATEUSER,t.SOURCE,t.ASSETRECID,t.USER1,t.USER2,t.DUEDATETIME,t.USER3,t.BCRECID,
+ASCII(TRIM(SUBSTRING(l.LABELS,1,1))) AS L1,ASCII(TRIM(SUBSTRING(l.LABELS,2,1))) AS L2,ASCII(TRIM(SUBSTRING(l.LABELS,3,1))) AS L3,
+ASCII(TRIM(SUBSTRING(l.LABELS,4,1))) AS L4,ASCII(TRIM(SUBSTRING(l.LABELS,5,1))) AS L5,ASCII(TRIM(SUBSTRING(l.LABELS,5,1))) AS L6,ASCII(TRIM(SUBSTRING(l.LABELS,5,1))) AS L7,
+ASCII(TRIM(SUBSTRING(l.LABELS,5,1))) AS L8,l.LABELSLENGTH FROM Tickets as t LEFT OUTER JOIN LabelLinks as l on l.RECID = t.RECID WHERE t.CREATEDATE > ? ORDER BY t.CREATEDATE </sql>
+    <variables_active>Y</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>432</xloc>
+      <yloc>144</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update Job/TFLogging</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $taskparams as t
+WITH t,timestamp() as tfstart,trim(replace(t.jobname,'Parent Job Name',t.transname)) as jobname
+MATCH (l:N4jlogging {jobname:jobname})
+SET l.lasttfrun=tfstart,l.jobname=jobname,l.transname=t.transname,l.jobstatus='running',l.tdir=t.tdir,l.tfilename=t.tfilename,l.jdir=t.jdir,l.jfilename=t.jfilename
+RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobstart,l.jobname
+;</cypher>
+    <batch_size/>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>taskparams</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>jobname</parameter>
+        <field>jobname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>transname</parameter>
+        <field>transname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tdir</parameter>
+        <field>tdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jdir</parameter>
+        <field>jdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jfilename</parameter>
+        <field>jfilename</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tfilename</parameter>
+        <field>tfilename</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>jobstart</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.jobname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.transname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>288</xloc>
+      <yloc>32</yloc>
+    </GUI>
+  </transform>
+  <transform_error_handling>
+  </transform_error_handling>
+  <attributes/>
+</pipeline>

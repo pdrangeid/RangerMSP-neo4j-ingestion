@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pipeline>
+  <info>
+    <name>RangerMSP-update-Crmitem-nodes</name>
+    <name_sync_with_filename>Y</name_sync_with_filename>
+    <description/>
+    <extended_description/>
+    <pipeline_version/>
+    <pipeline_type>Normal</pipeline_type>
+    <pipeline_status>0</pipeline_status>
+    <parameters>
+    </parameters>
+    <capture_transform_performance>N</capture_transform_performance>
+    <transform_performance_capturing_delay>1000</transform_performance_capturing_delay>
+    <transform_performance_capturing_size_limit>100</transform_performance_capturing_size_limit>
+    <created_user>-</created_user>
+    <created_date>2020/01/03 22:40:31.737</created_date>
+    <modified_user>admin</modified_user>
+    <modified_date>2020/01/05 12:32:41.443</modified_date>
+    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
+    <is_key_private>N</is_key_private>
+  </info>
+  <notepads>
+  </notepads>
+  <order>
+    <hop>
+      <from>Query CommitCRM Item (items) table</from>
+      <to>Create (:Crmitem) nodes for new items</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get last :Crmitem</from>
+      <to>Query CommitCRM Item (items) table (mod)</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Query CommitCRM Item (items) table (mod)</from>
+      <to>Modify (:Crmitem) nodes for modified items</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get job variables</from>
+      <to>Update Job/TFLogging</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get last :Crmitem</from>
+      <to>Query CommitCRM Item (items) table</to>
+      <enabled>Y</enabled>
+    </hop>
+  </order>
+  <transform>
+    <name>Create (:Crmitem) nodes for new items</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $items as row
+MATCH (rsn:Recordstatus {state:'N'}) 
+MATCH (rsa:Recordstatus {state:'A'})
+OPTIONAL MATCH (ic:Itemclass {name:row.USER1})
+MERGE (i:Crmitem {recid:row.RECID})
+ON CREATE
+set i.number=row.ITEMNO,i.name=row.NAME,i.description=row.DESCRIPTION,i.notes=row.NOTES,i.createdon=datetime(row.CREATEDATE).epochmillis,i.updatedon=datetime(row.UPDATEDATE).epochmillis,i.price=row.UNITPRICE
+FOREACH (ignoreMe in CASE WHEN row.SUSPENDED='Y' then [1] ELSE [] END | MERGE (i)-[:ITEM_STATE]-(rsn))
+FOREACH (ignoreMe in CASE WHEN row.SUSPENDED='N' then [1] ELSE [] END | MERGE (i)-[:ITEM_STATE]-(rsa))
+FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL then [1] ELSE [] END | MERGE (i)-[:ITEM_CLASS]-(ic))
+with row,i
+MATCH (e:Crmemployee {acctrecid:row.CREATEUSER})
+MERGE (i)-[:CREATED_BY]->(e)
+with i,row
+MATCH (e:Crmemployee {acctrecid:row.UPDATEUSER})
+MERGE (i)-[:UPDATED_BY]->(e)
+;</cypher>
+    <batch_size>1000</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>items</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ITEMNO</parameter>
+        <field>ITEMNO</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>NAME</parameter>
+        <field>NAME</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>DESCRIPTION</parameter>
+        <field>DESCRIPTION</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UNITPRICE</parameter>
+        <field>UNITPRICE</field>
+        <type>Float</type>
+      </mapping>
+      <mapping>
+        <parameter>NOTES</parameter>
+        <field>NOTES</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEUSER</parameter>
+        <field>CREATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEDATE</parameter>
+        <field>CREATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEDATE</parameter>
+        <field>UPDATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEUSER</parameter>
+        <field>UPDATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>SUSPENDED</parameter>
+        <field>SUSPENDED</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER1</parameter>
+        <field>USER1</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>768</xloc>
+      <yloc>80</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get job variables</name>
+    <type>GetVariable</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>jobname</name>
+        <variable> ${Internal.Workflow.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>transname</name>
+        <variable>${Internal.Pipeline.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tdir</name>
+        <variable>${Internal.Pipeline.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jdir</name>
+        <variable>${Internal.Workflow.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jfilename</name>
+        <variable>${Internal.Workflow.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tfilename</name>
+        <variable>${Internal.Pipeline.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>112</xloc>
+      <yloc>272</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get last :Crmitem</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
+OPTIONAL MATCH (l:Crmitem)
+WITH max(coalesce(l.createdon,0)) as lastnewitem, max(coalesce(l.updatedon,0)) as lastmodifieditem,cdl
+WITH COLLECT(lastnewitem)+COLLECT(lastmodifieditem)+cdl.crminit as tstamps
+UNWIND tstamps as ts
+WITH min(ts) as lastmodifieditem
+WITH apoc.date.format(coalesce(lastmodifieditem,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastmodifieditem
+//RETURN '1990-08-14 14:34:40.040' as lastmodifieditem
+RETURN lastmodifieditem
+;</cypher>
+    <batch_size/>
+    <read_only>Y</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>N</unwind>
+    <unwind_map/>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings/>
+    <returns>
+      <return>
+        <name>lastmoditem</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>208</xloc>
+      <yloc>128</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Modify (:Crmitem) nodes for modified items</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $items as row
+MATCH (i:Crmitem {recid:row.RECID})
+MATCH (rsn:Recordstatus {state:'N'}) 
+MATCH (rsa:Recordstatus {state:'A'})
+OPTIONAL MATCH (ic:Itemclass {name:row.USER1})
+OPTIONAL MATCH (cu:Crmemployee {acctrecid:row.CREATEUSER})
+OPTIONAL MATCH (uu:Crmemployee {acctrecid:row.UPDATEUSER})
+OPTIONAL MATCH (i)-[cbr:ACCOUNT_STATE]-(ocu:Crmemployee)
+OPTIONAL MATCH (i)-[ubr:UPDATED_BY]-(ouu:Crmemployee)
+OPTIONAL MATCH (i)-[icr:ITEM_CLASS]-(oic:Itemclass)
+OPTIONAL MATCH (i)-[irs:ITEM_STATE]-(ors:Recordstatus)
+set i.number=row.ITEMNO,i.name=row.NAME,i.description=row.DESCRIPTION,i.notes=row.NOTES,i.createdon=datetime(row.CREATEDATE).epochmillis,i.updatedon=datetime(row.UPDATEDATE).epochmillis
+DELETE irs
+FOREACH (ignoreMe in CASE WHEN row.SUSPENDED='Y' then [1] ELSE [] END | MERGE (i)-[:ITEM_STATE]-(rsn))
+FOREACH (ignoreMe in CASE WHEN row.SUSPENDED='N' then [1] ELSE [] END | MERGE (i)-[:ITEM_STATE]-(rsa))
+FOREACH (ignoreMe in CASE WHEN (row.CREATEUSER &lt;&gt; ocu.acctrecid) THEN [1] ELSE [] END | DELETE cbr)
+FOREACH (ignoreMe in CASE WHEN (row.UPDATEUSER &lt;&gt; ouu.acctrecid) THEN [1] ELSE [] END | DELETE ubr)
+FOREACH (ignoreMe in CASE WHEN oic.name IS NOT NULL and oic.name &lt;&gt; ic.name THEN [1] ELSE [] END | DELETE icr)
+FOREACH (ignoreMe in CASE WHEN coalesce(i.name,"isnull") &lt;&gt; coalesce(row.NAME,"isnull") THEN [1] ELSE [] END | SET i.name=row.NAME)
+FOREACH (ignoreMe in CASE WHEN coalesce(i.number,"isnull") &lt;&gt; coalesce(row.ITEMNO,"isnull") THEN [1] ELSE [] END | SET i.number=row.ITEMNO)
+FOREACH (ignoreMe in CASE WHEN coalesce(i.description,"isnull") &lt;&gt; coalesce(row.DESCRIPTION,"isnull") THEN [1] ELSE [] END | SET i.description=row.DESCRIPTION)
+FOREACH (ignoreMe in CASE WHEN coalesce(i.notes,"isnull") &lt;&gt; coalesce(row.NOTES,"isnull") THEN [1] ELSE [] END | SET i.notes=row.NOTES)
+FOREACH (ignoreMe in CASE WHEN coalesce(i.createdon,"isnull") &lt;&gt; coalesce(row.CREATEDATE,"isnull") THEN [1] ELSE [] END | SET i.createdon=datetime(row.CREATEDATE).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(i.updatedon,"isnull") &lt;&gt; coalesce(row.UPDATEDATE,"isnull") THEN [1] ELSE [] END | SET i.updatedon=datetime(row.UPDATEDATE).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(i.price,"isnull") &lt;&gt; coalesce(row.UNITPRICE,"isnull") THEN [1] ELSE [] END | SET i.price=row.UNITPRICE)
+FOREACH (ignoreMe in CASE WHEN cu.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (i)-[:CREATED_BY]->(cu))
+FOREACH (ignoreMe in CASE WHEN uu.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (i)-[:UPDATED_BY]->(uu))
+FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL then [1] ELSE [] END | MERGE (i)-[:ITEM_CLASS]-(ic))
+;</cypher>
+    <batch_size>1000</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>items</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ITEMNO</parameter>
+        <field>ITEMNO</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>NAME</parameter>
+        <field>NAME</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>DESCRIPTION</parameter>
+        <field>DESCRIPTION</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UNITPRICE</parameter>
+        <field>UNITPRICE</field>
+        <type>Float</type>
+      </mapping>
+      <mapping>
+        <parameter>NOTES</parameter>
+        <field>NOTES</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEUSER</parameter>
+        <field>CREATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEDATE</parameter>
+        <field>CREATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEDATE</parameter>
+        <field>UPDATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEUSER</parameter>
+        <field>UPDATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>SUSPENDED</parameter>
+        <field>SUSPENDED</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER1</parameter>
+        <field>USER1</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>768</xloc>
+      <yloc>160</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query CommitCRM Item (items) table</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>Y</execute_each_row>
+    <lookup>Get last :Crmitem</lookup>
+    <limit>0</limit>
+    <sql>SELECT RECID,ITEMNO,NAME,CAST(DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,UNITPRICE,CAST(NOTES as SQL_VARCHAR) AS NOTES,CREATEUSER,CREATEDATE,UPDATEDATE,UPDATEUSER,SUSPENDED,USER1 from Items WHERE CREATEDATE > ?</sql>
+    <variables_active>Y</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>480</xloc>
+      <yloc>80</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query CommitCRM Item (items) table (mod)</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <lookup>Get last :Crmitem</lookup>
+    <limit>0</limit>
+    <sql>SELECT RECID,ITEMNO,NAME,CAST(DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,UNITPRICE,CAST(NOTES as SQL_VARCHAR) AS NOTES,CREATEUSER,CREATEDATE,UPDATEDATE,UPDATEUSER,SUSPENDED,USER1 from Items WHERE UPDATEDATE > ?</sql>
+    <variables_active>Y</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>480</xloc>
+      <yloc>160</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update Job/TFLogging</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $taskparams as t
+WITH t,timestamp() as tfstart,trim(replace(t.jobname,'Parent Job Name',t.transname)) as jobname
+MATCH (l:N4jlogging {jobname:jobname})
+SET l.lasttfrun=tfstart,l.jobname=jobname,l.transname=t.transname,l.jobstatus='running',l.tdir=t.tdir,l.tfilename=t.tfilename,l.jdir=t.jdir,l.jfilename=t.jfilename
+RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobstart,l.jobname
+;</cypher>
+    <batch_size/>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>taskparams</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>jobname</parameter>
+        <field>jobname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>transname</parameter>
+        <field>transname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tdir</parameter>
+        <field>tdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jdir</parameter>
+        <field>jdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jfilename</parameter>
+        <field>jfilename</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tfilename</parameter>
+        <field>tfilename</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>jobstart</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.jobname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.transname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>288</xloc>
+      <yloc>272</yloc>
+    </GUI>
+  </transform>
+  <transform_error_handling>
+  </transform_error_handling>
+  <attributes/>
+</pipeline>

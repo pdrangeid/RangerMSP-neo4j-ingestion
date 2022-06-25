@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pipeline>
+  <info>
+    <name>RangerMSP-update-clientdomains</name>
+    <name_sync_with_filename>Y</name_sync_with_filename>
+    <description/>
+    <extended_description/>
+    <pipeline_version/>
+    <pipeline_type>Normal</pipeline_type>
+    <pipeline_status>0</pipeline_status>
+    <parameters>
+    </parameters>
+    <capture_transform_performance>N</capture_transform_performance>
+    <transform_performance_capturing_delay>1000</transform_performance_capturing_delay>
+    <transform_performance_capturing_size_limit>100</transform_performance_capturing_size_limit>
+    <created_user>-</created_user>
+    <created_date>2020/01/03 22:40:31.737</created_date>
+    <modified_user>admin</modified_user>
+    <modified_date>2020/01/05 12:32:41.443</modified_date>
+    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
+    <is_key_private>N</is_key_private>
+  </info>
+  <notepads>
+  </notepads>
+  <order>
+    <hop>
+      <from>Block this step until steps finish</from>
+      <to>Update (:Clientdomain)-[:DOMAIN_OF]->(:Company)  (:Crmasset)</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Get job variables</from>
+      <to>Update Job/TFLogging</to>
+      <enabled>Y</enabled>
+    </hop>
+  </order>
+  <transform>
+    <name>Block this step until steps finish</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr>0</CopyNr>
+        <name>Update (:Clientdomain)-[:DOMAIN_OF]->(:Company) (:Contact)</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>192</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get job variables</name>
+    <type>GetVariable</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <fields>
+      <field>
+        <name>jobname</name>
+        <variable> ${Internal.Workflow.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>transname</name>
+        <variable>${Internal.Pipeline.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tdir</name>
+        <variable>${Internal.Pipeline.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jdir</name>
+        <variable>${Internal.Workflow.Filename.Folder}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>jfilename</name>
+        <variable>${Internal.Workflow.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+      <field>
+        <name>tfilename</name>
+        <variable>${Internal.Pipeline.Filename.Name}</variable>
+        <type>String</type>
+        <format/>
+        <currency/>
+        <decimal/>
+        <group/>
+        <length>-1</length>
+        <precision>-1</precision>
+        <trim_type>none</trim_type>
+      </field>
+    </fields>
+    <attributes/>
+    <GUI>
+      <xloc>176</xloc>
+      <yloc>320</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update (:Clientdomain)-[:DOMAIN_OF]->(:Company)  (:Crmasset)</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>// Creating (:Clientdomain)-[:DOMAIN_OF]-(:Company) relationships for accounts that exclusively use the domain from ():Crmasset).
+WITH "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.){2,}([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9]){2,}$" as domainregex,"^[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}$" as ipregex
+MATCH (ca:Crmasset)-[:ASSET_STATE]-(rs:Recordstatus {state:'A'}) where ca.name contains '.' and not ca.name =~ipregex and ca.name =~ domainregex
+MATCH (ca)-[:ASSET_TYPE]-(at:Assettype) where tolower(at.name) contains 'server'
+MATCH (a:Company)-[:ASSET_OF]-(ca)
+WITH a,collect(distinct replace(ca.name,split(ca.name,".")[0]+'.','')) as assetdomains
+WITH *,"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.){1,}([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9]){2,}$" as domainregex,"^[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}$" as ipregex
+UNWIND assetdomains as domainname
+WITH * where domainname =~ domainregex and not domainname =~ipregex
+with domainname,collect(distinct a.name) as colcomp
+MATCH (a:Company {name:colcomp[0]})
+where size(colcomp)=1
+MERGE (cd:Clientdomain {name:trim(domainname)})
+WITH * WHERE not (cd)-[]-(:Company)
+MERGE (cd)-[:DOMAIN_OF]->(a) ON CREATE SET r.source='RangerMSP refresh clientdomains transform'
+RETURN domainname,cd.name,a.name</cypher>
+    <batch_size/>
+    <read_only>Y</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>N</unwind>
+    <unwind_map/>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings/>
+    <returns>
+      <return>
+        <name>lastnewcontact</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>528</xloc>
+      <yloc>192</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update (:Clientdomain)-[:DOMAIN_OF]->(:Company) (:Contact)</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>// Creating (:Clientdomain)-[:DOMAIN_OF]-(:Company) relationships for accounts that exclusively use the domain (from Contacts).
+MATCH (cd:Clientdomain)-[]-(:Company)
+WITH COLLECT(distinct cd.name) as cemaildomains
+MATCH (c:Contact)-[:ACCOUNT_STATE]-(:Recordstatus {state:'A'})
+WHERE c.email IS NOT NULL
+WITH c,cemaildomains,
+['msn.com','usinternet.com','att.net','charter.net','gmail.com','hotmail.com','yahoo.com','outlook.com','inbox.com','icloud.com','mail.com','aol.com','comcast.net','attlocal.net','zyxel.com','airstreamcomm.net','example.com'] as publicdomains,collect(distinct split(c.email,"@")[1]) as emaildomains
+WITH c,publicdomains,emaildomains,cemaildomains,
+[i in emaildomains where not(i in publicdomains) and not(i in cemaildomains)] as filteredemaildomains
+UNWIND filteredemaildomains as domainname
+MATCH (c:Contact)-[:WORKS_FOR]-(a:Company)-[:ACCOUNT_STATE]-(:Recordstatus {state:'A'})
+where split(c.email,'@')[1]=~domainname
+with domainname,collect(distinct a.name) as colcomp
+where size(colcomp)=1
+MATCH (a:Company {name:colcomp[0]})
+MERGE (cd:Clientdomain {name:trim(domainname)})
+WITH * WHERE not (cd)-[]-(:Company)
+MERGE (cd)-[r:DOMAIN_OF]->(a) ON CREATE SET r.source='RangerMSP refresh clientdomains transform'
+RETURN distinct domainname,a.name order by a.name
+;</cypher>
+    <batch_size/>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>N</unwind>
+    <unwind_map/>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings/>
+    <returns>
+      <return>
+        <name>domainname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>a.name</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>240</xloc>
+      <yloc>64</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update Job/TFLogging</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $taskparams as t
+WITH t,timestamp() as tfstart,trim(replace(t.jobname,'Parent Job Name',t.transname)) as jobname
+MATCH (l:N4jlogging {jobname:jobname})
+SET l.lasttfrun=tfstart,l.jobname=jobname,l.transname=t.transname,l.jobstatus='running',l.tdir=t.tdir,l.tfilename=t.tfilename,l.jdir=t.jdir,l.jfilename=t.jfilename
+RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobstart,l.jobname
+;</cypher>
+    <batch_size/>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>taskparams</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>jobname</parameter>
+        <field>jobname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>transname</parameter>
+        <field>transname</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tdir</parameter>
+        <field>tdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jdir</parameter>
+        <field>jdir</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>jfilename</parameter>
+        <field>jfilename</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>tfilename</parameter>
+        <field>tfilename</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>jobstart</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.jobname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>l.transname</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>352</xloc>
+      <yloc>320</yloc>
+    </GUI>
+  </transform>
+  <transform_error_handling>
+  </transform_error_handling>
+  <attributes/>
+</pipeline>

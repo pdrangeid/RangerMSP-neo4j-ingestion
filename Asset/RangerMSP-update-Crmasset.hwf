@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workflow>
+  <name>RangerMSP-update-Crmasset</name>
+  <name_sync_with_filename>Y</name_sync_with_filename>
+  <description/>
+  <extended_description/>
+  <workflow_version/>
+  <created_user>-</created_user>
+  <created_date>2022/03/31 10:08:49.499</created_date>
+  <modified_user>-</modified_user>
+  <modified_date>2022/03/31 10:08:49.499</modified_date>
+  <parameters>
+    </parameters>
+  <actions>
+    <action>
+      <name>Start</name>
+      <description/>
+      <type>SPECIAL</type>
+      <attributes/>
+      <repeat>N</repeat>
+      <schedulerType>0</schedulerType>
+      <intervalSeconds>0</intervalSeconds>
+      <intervalMinutes>60</intervalMinutes>
+      <hour>12</hour>
+      <minutes>0</minutes>
+      <weekDay>1</weekDay>
+      <DayOfMonth>1</DayOfMonth>
+      <parallel>N</parallel>
+      <xloc>50</xloc>
+      <yloc>50</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>RangerMSP-update-Crmasset-nodes.hpl</name>
+      <description/>
+      <type>PIPELINE</type>
+      <attributes/>
+      <filename>${PROJECT_HOME}/../RangerMSP/Asset/RangerMSP-update-Crmasset-nodes.hpl</filename>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <create_parent_folder>N</create_parent_folder>
+      <run_configuration>local</run_configuration>
+      <parameters>
+        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>
+      <parallel>N</parallel>
+      <xloc>240</xloc>
+      <yloc>48</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>Assign (:Crmasset)-[:ASSET_TYPE]-(:Assetclass)</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>
+WITH ['server','azure','appliance','firewall','ipmi','onsite manager','pbx','router','storage device','switch','ups','wireless','virtual server','multifunction' ,'power (pdu)','power (controller)','vpn'] as list
+MATCH (at:Assettype) WHERE any (item in list where toLower(at.name) contains item)
+MATCH (ca:Crmasset)-[:ASSET_TYPE]-(at) where not ((ca)-[:ASSET_CLASS]-(:Assetclass))
+MATCH (ac:Assetclass {name:'Infrastructure'})
+MERGE (ca)-[:ASSET_CLASS]->(ac)
+;
+
+WITH ['printer','display','peripheral','scanner'] as list
+MATCH (at:Assettype) WHERE any (item in list where toLower(at.name) contains item)
+MATCH (ca:Crmasset)-[:ASSET_TYPE]-(at) where not ((ca)-[:ASSET_CLASS]-(:Assetclass))
+MATCH (ac:Assetclass {name:'Peripheral'})
+MERGE (ca)-[:ASSET_CLASS]->(ac)
+;
+
+WITH ['desktop','notebook','mini pc','tablet','thin client','workstation','zero client'] as list
+MATCH (at:Assettype) WHERE any (item in list where toLower(at.name) contains item)
+MATCH (ca:Crmasset)-[:ASSET_TYPE]-(at) where not ((ca)-[:ASSET_CLASS]-(:Assetclass))
+MATCH (ac:Assetclass {name:'Endpoint'})
+MERGE (ca)-[:ASSET_CLASS]->(ac)
+;</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>560</xloc>
+      <yloc>144</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>Create (:Crmasset)-[:MONITORING_REQUIREMENT]->(:Monitoring)</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>WITH ["contract","license","shelf device","subscription","voice","thin client","zero client"] AS NOMONITORING
+MATCH (nomon:Monitoring {value:'N'})
+MATCH (ca:Crmasset) where not (ca)-[:MONITORING_REQUIREMENT]-(:Monitoring {value:'N'})  and toLower(ca.category) in NOMONITORING
+MERGE (ca)-[:MONITORING_REQUIREMENT]->(nomon)
+;
+
+MATCH (nomon:Monitoring {value:'N'})
+MATCH (ca:Crmasset) where not (ca)-[:MONITORING_REQUIREMENT]-(:Monitoring {value:'N'})  and (ca)-[]-(:Assetclass {name:'Peripheral'})
+MERGE (ca)-[:MONITORING_REQUIREMENT]->(nomon)
+;
+
+WITH ["azure","computer","desktop","mini pc","notebook","onsite manager","server","tablet","virtual desktop","virtual server","workstation"] AS RMMMONITORING
+MATCH (rmm:Monitoring {value:'NR'})
+MATCH (ca:Crmasset) where not (ca)-[:MONITORING_REQUIREMENT]-(:Monitoring {value:'N'})  and toLower(ca.type) in RMMMONITORING
+MERGE (ca)-[:MONITORING_REQUIREMENT]->(rmm)
+;
+
+MATCH (rmm:Monitoring {value:'NR'})
+MATCH (ca:Crmasset) where not (ca)-[:MONITORING_REQUIREMENT]-(:Monitoring {value:'N'})  and (ca)-[]-(:Assetclass {name:'Endpoint'})
+MERGE (ca)-[:MONITORING_REQUIREMENT]->(rmm)
+;
+
+WITH ["azure","backup appliance","firewall","onsite manager","pbx","power (controller)","router","server","storage device","switch","virtual server","ups","vpn","wireless (access point)","wireless (controller)"] AS CMKMONITORING
+MATCH (cmk:Monitoring {value:'Y'})
+MATCH (ca:Crmasset) where not (ca)-[:MONITORING_REQUIREMENT]-(:Monitoring {value:'N'})  and toLower(ca.type) in CMKMONITORING
+MERGE (ca)-[:MONITORING_REQUIREMENT]->(cmk)
+;
+
+MATCH (cmk:Monitoring {value:'Y'})
+MATCH (ca:Crmasset) where not (ca)-[:MONITORING_REQUIREMENT]-(:Monitoring {value:'N'})  and (ca)-[]-(:Assetclass {name:'Infrastructure'})
+MERGE (ca)-[:MONITORING_REQUIREMENT]->(cmk)
+;
+
+WITH ["book","certificate","display","domain registration","handset","license","maint/warranty","modem","office 365","peripheral","printer","scanner","sensor","service","subscription","thin client","zero client"] AS NOMONITORING
+MATCH (nomon:Monitoring {value:'N'})
+MATCH (ca:Crmasset) where not (ca)-[:MONITORING_REQUIREMENT]-(:Monitoring {value:'N'})  and toLower(ca.type) in NOMONITORING
+MERGE (ca)-[:MONITORING_REQUIREMENT]->(nomon)
+;
+
+
+
+MATCH (m0:Monitoring {value:'Y'})-[r0]-(ca:Crmasset)-[r1]-(m1:Monitoring {value:'N'})
+DELETE r0
+;
+</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>208</xloc>
+      <yloc>144</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>(:Crmasset) naming hygiene</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>WITH "[^a-zA-Z0-9-._@ ]" as regex
+MATCH (ca:Crmasset)
+WITH ca,trim(apoc.text.replace(ca.name,regex,'')) as cleanname
+WITH ca,cleanname,toLower(ca.type) as catype where ca.name &lt;&gt; toLower(cleanname)
+WITH ca,cleanname,catype,["desktop","firewall","handset","notebook","power (pdu)","printer","storage device","switch","thin client","ups","wireless (access point)","wireless (controller)","workstation","zero client","server","virtual server","wireless (controller)"] as listoftypes
+WITH ca,cleanname WHERE catype in listoftypes
+SET ca.name=toLower(cleanname)
+return ca.name,cleanname,ca.category,ca.type order by ca.type
+;</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>496</xloc>
+      <yloc>48</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>Update (:Crmasset)-[:MANUFACTURED_BY]->(:Manufacturer)</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>MATCH (ca:Crmasset) WHERE ca.manufacturer is not null and not (ca)-[:MANUFACTURED_BY]->(:Manufacturer)
+MATCH (m:Manufacturer {name:trim(ca.manufacturer)})
+MERGE (ca)-[:MANUFACTURED_BY]->(m)
+RETURN ca.name,m.name</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>784</xloc>
+      <yloc>48</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>Update the ( :Ticketqueue) for expiring (:Crmasset)</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>// CREATE EXPIRING ASSET TICKET QUEUE ITEM 
+
+WITH timestamp() as now,timestamp()+3888000000 as in45days
+WITH *,apoc.date.format(now+2592000000,'ms','MM/dd/yyyy HH:mm:ss','CST') as duedate
+MATCH (a:Company)-[:ASSET_OF]-(ca:Crmasset)-[:ASSET_STATE]-(:Recordstatus {state:'A'}) WHERE ca.expireson>now and ca.expireson&lt;in45days
+OPTIONAL MATCH (a)-[:ACCOUNT_MANAGER]-(e:Crmemployee)-[:ASSET_STATE]-(:Recordstatus {state:'A'})
+WITH *,apoc.date.format(ca.expireson,'ms','yyyy-MM-dd','CST') as Expiration
+MERGE (tq:Ticketqueue {host:ca.name,service:'Expiring Asset',asset:ca.recid})
+ON CREATE SET tq.acctrecid=a.acctrecid,tq.company=a.name,tq.tickettype='Sales',tq.source='Graph Automation',tq.submitted=timestamp(),tq.status='submitted',tq.createcounter=0,tq.duedate=duedate,tq.autoclose='Do not Autoclose',tq.expiration=Expiration,tq.manager=coalesce(e.acctrecid,'CRDVFE2WLHAEO7NF8XCZ') 
+ON MATCH SET tq.company=a.name
+RETURN a.name,ca.name,tq.expiration;
+</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>208</xloc>
+      <yloc>256</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>Update (:Crmasset)-[:MANUFACTURED_BY]->(:Manufacturer) by alias</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>MATCH (ca:Crmasset) WHERE ca.manufacturer is not null and not (ca)-[:MANUFACTURED_BY]->(:Manufacturer) and ca.manufacturer IS NOT NULL and trim(ca.manufacturer) &lt;&gt; ''
+OPTIONAL MATCH (m:Manufacturer) WHERE toLower(ca.manufacturer)=toLower(m.name) or toLower(trim(ca.manufacturer)) in m.aliases
+FOREACH (ignoreMe in CASE WHEN m.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:MANUFACTURED_BY]->(m))
+FOREACH (ignoreMe in CASE WHEN m.name IS NULL and not (ca)-[:MANUFACTURED_BY]->(:Manufacturer) THEN [1] ELSE [] END | MERGE (m:Manufacturer {name:trim(ca.manufacturer)}) MERGE (ca)-[:MANUFACTURED_BY]->(m) SET m.source='ingest assets')
+RETURN ca.name,m.name</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>912</xloc>
+      <yloc>144</yloc>
+      <attributes_hac/>
+    </action>
+  </actions>
+  <hops>
+    <hop>
+      <from>Start</from>
+      <to>RangerMSP-update-Crmasset-nodes.hpl</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>Assign (:Crmasset)-[:ASSET_TYPE]-(:Assetclass)</from>
+      <to>Create (:Crmasset)-[:MONITORING_REQUIREMENT]->(:Monitoring)</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>RangerMSP-update-Crmasset-nodes.hpl</from>
+      <to>(:Crmasset) naming hygiene</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>(:Crmasset) naming hygiene</from>
+      <to>Update (:Crmasset)-[:MANUFACTURED_BY]->(:Manufacturer)</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Create (:Crmasset)-[:MONITORING_REQUIREMENT]->(:Monitoring)</from>
+      <to>Update the ( :Ticketqueue) for expiring (:Crmasset)</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Update (:Crmasset)-[:MANUFACTURED_BY]->(:Manufacturer)</from>
+      <to>Update (:Crmasset)-[:MANUFACTURED_BY]->(:Manufacturer) by alias</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Update (:Crmasset)-[:MANUFACTURED_BY]->(:Manufacturer) by alias</from>
+      <to>Assign (:Crmasset)-[:ASSET_TYPE]-(:Assetclass)</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+  </hops>
+  <notepads>
+  </notepads>
+  <attributes/>
+</workflow>
