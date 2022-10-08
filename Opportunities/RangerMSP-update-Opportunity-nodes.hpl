@@ -74,20 +74,20 @@
     <cypher>
 UNWIND $opps as row
 OPTIONAL MATCH (a:Company{acctrecid:row.cardid})
-OPTIONAL MATCH (e:Crmemployee{acctrecid:row.workerid})
+OPTIONAL MATCH (e:Rangeremployee{acctrecid:row.workerid})
 OPTIONAL MATCH (ok:Oppkind {name:row.kind})
 OPTIONAL MATCH (os:Oppstage {id:ToInteger(split(row.stage,' ')[0])})
 OPTIONAL MATCH (oss:Oppstatus {id:row.status})
 OPTIONAL MATCH (osrc:Oppsource {name:row.source})
 OPTIONAL MATCH (or:Oppreason {name:row.reason})
-OPTIONAL MATCH (cu:Crmemployee {acctrecid:row.createuser})
-OPTIONAL MATCH (uu:Crmemployee {acctrecid:row.updateuser})
+OPTIONAL MATCH (cu:Rangeremployee {acctrecid:row.createuser})
+OPTIONAL MATCH (uu:Rangeremployee {acctrecid:row.updateuser})
 MERGE (o:Opportunity {recid:row.recid})
 SET o.probability=row.probability,o.name=row.name,o.createdon=datetime(row.createdate).epochmillis,o.opened=datetime(row.opendate).epochmillis,o.estimated=datetime(row.estdate).epochmillis,
 o.closed=datetime(row.closedate).epochmillis,o.updatedon=datetime(row.updatedate).epochmillis,o.region=row.region,o.createdby=coalesce(cu.name,row.createuser),o.updatedby=coalesce(uu.name,row.updateuser),o.description=trim(left(row.description,150))
 FOREACH (ignoreMe in CASE WHEN coalesce(o.createdon,0) > coalesce(o.lastupdate,0) THEN [1] ELSE [] END | SET o.lastupdate=o.createdon)
 FOREACH (ignoreMe in CASE WHEN coalesce(o.updatedon,0) > coalesce(o.lastupdate,0) THEN [1] ELSE [] END | SET o.lastupdate=o.updatedon)
-//OPTIONAL MATCH (cu:Crmemployee {acctrecid:row.createuserid})
+//OPTIONAL MATCH (cu:Rangeremployee {acctrecid:row.createuserid})
 //MERGE (c:Contact {acctrecid:row.recid})
 //ON CREATE SET c.company=row.company,c.title=row.title,c.email=trim(toLower(row.email1)),c.name=row.contact,c.createdon=datetime(row.createdate).epochmillis,c.updatedon=datetime(row.updatedate).epochmillis,c.createuser=cu.name
 //MERGE (c)-[:ACCOUNT_STATE]->(r)
@@ -279,9 +279,8 @@ RETURN a.name as Company,e.name as Manager,datetime(row.createdate).epochmillis 
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $docs as row
-MERGE (r:Rangerdoc {recid:row.RECID}) SET r.name=row.DOCUMENTNAME,r.shortname=row.DOCUMENTNAMESHORT,r.description=trim(row.DESCRIPTION),r.createdon=datetime(row.CREATEDATE).epochmillis,r.updatedon=datetime(row.UPDATEDATE).epochmillis
-WITH row,r
 MATCH (o:Opportunity {recid:row.LINKRECID})
+MERGE (r:Rangerdoc {recid:row.RECID}) SET r.name=row.DOCUMENTNAME,r.shortname=row.DOCUMENTNAMESHORT,r.description=trim(row.DESCRIPTION),r.createdon=datetime(row.CREATEDATE).epochmillis,r.updatedon=datetime(row.UPDATEDATE).epochmillis
 MERGE (r)&lt;-[:HISTORY_DOCUMENT_ENTRY]-(o)
 FOREACH (ignoreMe in CASE WHEN coalesce(r.createdon,0) > coalesce(o.lastupdate,0) THEN [1] ELSE [] END | SET o.lastupdate=r.createdon)
 FOREACH (ignoreMe in CASE WHEN coalesce(r.updatedon,0) > coalesce(o.lastupdate,0) THEN [1] ELSE [] END | SET o.lastupdate=r.updatedon)
@@ -365,11 +364,10 @@ RETURN row.RECID,o.recid
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $events as row
+MATCH (o:Opportunity {recid:row.LINKRECID})
 MERGE (r:Rangerevent {recid:row.RECID})
 //SET r.name=row.DOCUMENTNAME,r.shortname=row.DOCUMENTNAMESHORT,r.description=row.DESCRIPTION,r.createdon=datetime(row.CREATEDATE).epochmillis,r.updatedon=datetime(row.UPDATEDATE).epochmillis
 SET r.text=trim(row.FREETEXT),r.done=row.DONE,r.donedate=DATETIME(row.DONEDATE).epochmillis,r.cancelled=row.CANCELD,r.docid=row.DOCID,r.createdon=datetime(row.CREATEDATE).epochmillis,r.updatedon=datetime(row.UPDATEDATE).epochmillis
-WITH row,r
-MATCH (o:Opportunity {recid:row.LINKRECID})
 MERGE (r)&lt;-[:HISTORY_EVENT_ENTRY]-(o)
 FOREACH (ignoreMe in CASE WHEN coalesce(r.createdon,0) > coalesce(o.lastupdate,0) THEN [1] ELSE [] END | SET o.lastupdate=r.createdon)
 RETURN row.RECID,o.recid
@@ -511,7 +509,7 @@ RETURN row.RECID,o.recid
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
+    <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
 OPTIONAL MATCH (l:Rangerdoc)
 WITH max(coalesce(l.createdon,0)) as lastnewdoc, max(coalesce(l.updatedon,0)) as lastmodifieddoc,cdl
 WITH COLLECT(lastnewdoc)+COLLECT(lastmodifieddoc)+cdl.crminit as tstamps
@@ -559,7 +557,7 @@ RETURN lastmodifieddoc
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
+    <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
 OPTIONAL MATCH (l:Rangertask)
 WITH max(coalesce(l.createdon,0)) as lastnewtask, max(coalesce(l.updatedon,0)) as lastmodifiedtask,cdl
 WITH COLLECT(lastnewtask)+COLLECT(lastmodifiedtask)+cdl.crminit as tstamps
@@ -607,15 +605,15 @@ RETURN lastmodifiedtask
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
+    <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
 OPTIONAL MATCH (l:Opportunity)
 WITH max(coalesce(l.createdon,0)) as lastnewopp, max(coalesce(l.updatedon,0)) as lastmodifiedopp,cdl
-WITH COLLECT(lastnewopp)+COLLECT(lastmodifiedopp)+cdl.crminit as tstamps
+WITH COLLECT(lastnewopp)+COLLECT(lastmodifiedopp)+cdl.crminit as tstamps,cdl
 UNWIND tstamps as ts
-WITH min(ts) as lastmodifiedopp
-WITH apoc.date.format(coalesce(lastmodifiedopp,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastmodifiedopp
+WITH min(ts) as lastmodifiedopp,cdl
+WITH apoc.date.format(coalesce(lastmodifiedopp,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastmodifiedopp,apoc.date.format(coalesce(cdl.opportunitylimiter,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS historylimit
 //RETURN '1990-08-14 14:34:40.040' as lastmodifiedopp
-RETURN lastmodifiedopp
+RETURN lastmodifiedopp,historylimit
 ;
 </cypher>
     <batch_size/>
@@ -631,7 +629,12 @@ RETURN lastmodifiedopp
     <mappings/>
     <returns>
       <return>
-        <name>lastnewopp</name>
+        <name>lastmodifiedopp</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+      <return>
+        <name>historylimit</name>
         <type>String</type>
         <source_type>String</source_type>
       </return>
@@ -748,7 +751,8 @@ RETURN lastmodifiedopp
     <execute_each_row>N</execute_each_row>
     <lookup>Get Opportunity (last new)</lookup>
     <limit>0</limit>
-    <sql>SELECT recid,name,cardid,CAST(description as SQL_VARCHAR) as description,workerid,opendate,estdate,closedate,probability,stage,status,kind,reason,user1,user2,user3,region,createdate,createuser,updatedate,updateuser,source,contactid from opps WHERE CREATEDATE > ?</sql>
+    <sql>SELECT recid,name,cardid,CAST(description as SQL_VARCHAR) as description,workerid,opendate,estdate,closedate,probability,stage,status,kind,reason,user1,user2,user3,region,createdate,createuser,updatedate,updateuser,source,
+contactid from opps WHERE CREATEDATE > ? AND CREATEDATE > ?</sql>
     <variables_active>Y</variables_active>
     <attributes/>
     <GUI>

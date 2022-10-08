@@ -24,7 +24,7 @@
   <order>
     <hop>
       <from>Query RangerMSP Assets (assets) table for OS info</from>
-      <to>Create (:Crmasset)-[:DEVICE_RUNS_OS]-(:Os) (existing Windows OS matches</to>
+      <to>Create (:Rangerasset)-[:DEVICE_RUNS_OS]-(:Os) (existing Windows OS matches</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -62,7 +62,7 @@
     <transforms>
       <transform>
         <CopyNr>0</CopyNr>
-        <name>Create (:Crmasset)-[:DEVICE_RUNS_OS]-(:Os) (existing Windows OS matches</name>
+        <name>Create (:Rangerasset)-[:DEVICE_RUNS_OS]-(:Os) (existing Windows OS matches</name>
       </transform>
     </transforms>
     <attributes/>
@@ -72,7 +72,7 @@
     </GUI>
   </transform>
   <transform>
-    <name>Create (:Crmasset)-[:DEVICE_RUNS_OS]-(:Os) (existing Windows OS matches</name>
+    <name>Create (:Rangerasset)-[:DEVICE_RUNS_OS]-(:Os) (existing Windows OS matches</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -84,8 +84,8 @@
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $assets as a
-//MATCH (ca:Crmasset {recid:a.RECID}) WHERE not (ca)-[:DEVICE_RUNS_OS]-(:Os)
-MATCH (ca:Crmasset {recid:a.RECID})-[:ASSET_STATE]->(:Recordstatus {state:'A'}) WHERE not (ca)-[:DEVICE_RUNS_OS]->(:Os)
+//MATCH (ca:Rangerasset {recid:a.RECID}) WHERE not (ca)-[:DEVICE_RUNS_OS]-(:Os)
+MATCH (ca:Rangerasset {recid:a.RECID})-[:ASSET_STATE]->(:Recordstatus {state:'A'}) WHERE not (ca)-[:DEVICE_RUNS_OS]->(:Os)
 WITH *,split(a.NOTES,'\r\n') as notesarr
 UNWIND notesarr as ni
 WITH ca,a,ni WHERE toLower(ni) starts with 'os:' or toLower(ni) starts with 'os name:'
@@ -165,8 +165,8 @@ RETURN os,ros.name as osname,ni as notesitem,a.NOTES as notes
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $assets as a
-//MATCH (ca:Crmasset {recid:a.RECID}) WHERE not (ca)-[:DEVICE_RUNS_OS]-(:Os)
-MATCH (ca:Crmasset {recid:a.RECID})-[:ASSET_STATE]->(:Recordstatus {state:'A'}) WHERE not (ca)-[:DEVICE_RUNS_OS]->(:Os)
+//MATCH (ca:Rangerasset {recid:a.RECID}) WHERE not (ca)-[:DEVICE_RUNS_OS]-(:Os)
+MATCH (ca:Rangerasset {recid:a.RECID})-[:ASSET_STATE]->(:Recordstatus {state:'A'}) WHERE not (ca)-[:DEVICE_RUNS_OS]->(:Os)
 WITH *,split(a.NOTES,'\r\n') as notesarr
 UNWIND notesarr as ni
 WITH ca,a,ni WHERE toLower(ni) starts with 'os:' or toLower(ni) starts with 'os name:'
@@ -447,7 +447,7 @@ RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobs
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH  (da:Dattoasset)-[:BACKED_UP_VIA]-(ca:Crmasset)-[:ASSET_STATE]-(:Recordstatus {state:'A'}) WHERE NOT (ca)-[:DEVICE_RUNS_OS]-(:Os)
+    <cypher>MATCH  (da:Dattoasset)-[:BACKED_UP_VIA]-(ca:Rangerasset)-[:ASSET_STATE]-(:Recordstatus {state:'A'}) WHERE NOT (ca)-[:DEVICE_RUNS_OS]-(:Os)
 FOREACH (ignoreMe in CASE WHEN toLower(da.os) contains 'centos' and da.os contains '7'  THEN [1] ELSE [] END |MERGE (ros:Os {name:'CentOS 7'}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
 FOREACH (ignoreMe in CASE WHEN toLower(da.os) contains 'centos' and da.os contains '8'  THEN [1] ELSE [] END |MERGE (ros:Os {name:'CentOS 8'}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))
 FOREACH (ignoreMe in CASE WHEN toLower(da.os) contains 'windows 6.3' THEN [1] ELSE [] END |MERGE (ros:Os {name:"Microsoft Windows 8.1"}) MERGE (ca)-[:DEVICE_RUNS_OS]->(ros))

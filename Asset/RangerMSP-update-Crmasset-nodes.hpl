@@ -24,43 +24,98 @@
   </notepads>
   <order>
     <hop>
-      <from>Query CommitCRM Assets (assets) table</from>
-      <to>Create (:Crmassets) nodes for new assets</to>
+      <from>Get last :Rangerasset</from>
+      <to>Query RangerMSP Assets (modified assets)</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Get last :Crmasset</from>
-      <to>Query CommitCRM Assets (modified assets)</to>
+      <from>Query RangerMSP Assets (modified assets)</from>
+      <to>Modify :Rangerassets for modified assets </to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM Assets (modified assets)</from>
-      <to>Modify :Crmassets (state/installed/created/used/company/cat/type) for modified assets </to>
+      <from>Query RangerMSP Assets (modified assets)</from>
+      <to>Block until transforms finish</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM Assets (modified assets)</from>
-      <to>Modify :Crmassets (manufacturered) for modified assets </to>
+      <from>Block until transforms finish</from>
+      <to>Modify :Rangerassets (manufacturered) for modified assets </to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM Assets (modified assets)</from>
-      <to>Modify :Crmassets (model/parent/haas) for modified assets</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Get job variables</from>
-      <to>Update Job/TFLogging</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Get last :Crmasset</from>
-      <to>Query CommitCRM Assets (assets) table</to>
+      <from>Block until transforms finish</from>
+      <to>Modify :Rangerassets (model/parent/haas) for modified assets</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <transform>
-    <name>Create (:Crmassets) nodes for new assets</name>
+    <name>Block until transforms finish</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <name>Modify :Rangerassets for modified assets </name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>464</xloc>
+      <yloc>304</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get last :Rangerasset</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
+WITH max(coalesce(cdl.lastmodifiedasset,0)) as lastmodifiedasset
+//WITH apoc.date.format(lastmodifiedasset,'ms','yyyy-MM-dd HH:mm:ss.sss') AS lastmodifiedasset
+WITH apoc.date.format(lastmodifiedasset,'ms','yyyy-MM-dd HH:mm:ss.sss') AS lastmodifiedasset
+//RETURN '1990-08-14 14:34:40.040' as lastmodifiedasset
+RETURN lastmodifiedasset
+;</cypher>
+    <batch_size/>
+    <read_only>Y</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>N</unwind>
+    <unwind_map/>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings/>
+    <returns>
+      <return>
+        <name>lastmodifiedasset</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>112</xloc>
+      <yloc>96</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Modify :Rangerassets (manufacturered) for modified assets </name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -72,44 +127,372 @@
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $assets as row
-MATCH (rs:Recordstatus {state:row.STATUS})
-MATCH (a:Company {acctrecid:coalesce(row.ACCOUNTRECID,'None Provided')})
-WITH * WHERE row.RECID IS NOT NULL
-MERGE (ca:Crmasset {recid:row.RECID})
-SET ca.name=trim(toLower(row.NAME)),ca.category=row.USER1,ca.manufacturer=row.MANUFACTURER,ca.model=row.MODEL,ca.assettag=row.ASSETCODE,ca.location=row.LOCATION,ca.description=row.DESCRIPTION,
-ca.createdon=apoc.date.parse(toString(row.CREATEDATE),'ms',"yyyy-MM-dd'T'HH:mm:ss","CST"),ca.updatedon=apoc.date.parse(toString(row.UPDATEDATE),'ms',"yyyy-MM-dd'T'HH:mm:ss","CST"),ca.type=row.VALUE,
-ca.expireson=apoc.date.parse(toString(row.WARRANTYEXPDATE),'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST')
-SET ca.mac=toLower(apoc.text.replace(row.USER3,"[^a-zA-Z\\d]","")),ca.serial=toLower(apoc.text.replace(apoc.text.replace(row.SERIALNO, "[^a-zA-Z\\d]",""),"VMware",""))
-FOREACH (ignoreMe in CASE WHEN a.name='None Provided' THEN [1] ELSE [] END | SET ca.company=row.ACCOUNTRECID)
-with ca,a,rs,row
-FOREACH (ignoreMe in CASE WHEN rs.state IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_STATE]-(rs))
-FOREACH (ignoreMe in CASE WHEN a.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_OF]->(a))
-with ca,row
-MATCH (ac:Assetcategory {name:coalesce(trim(row.USER1),'None Provided')})
-FOREACH (ignoreMe in CASE WHEN ac.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:IN_CATEGORY]->(ac))
-with ca,row
-MATCH (at:Assettype {name:coalesce(row.VALUE,'None Provided')})
-FOREACH (ignoreMe in CASE WHEN at.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_TYPE]->(at))
-with ca,row
-MATCH (np:Model {name:'None Provided'})
-OPTIONAL MATCH (m:Model {name:trim(row.MODEL)})
-FOREACH (ignoreMe in CASE WHEN m.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_IS_MODEL]->(m))
-FOREACH (ignoreMe in CASE WHEN m.name IS NULL and row.MODEL IS NOT NULL and trim(row.MODEL) &lt;&gt; "" THEN [1] ELSE [] END | MERGE (m:Model {name:row.MODEL}) MERGE (ca)-[:ASSET_IS_MODEL]->(m) )
-FOREACH (ignoreMe in CASE WHEN m.name IS NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_IS_MODEL]->(np))
-with ca,row
-OPTIONAL MATCH (pa:Crmasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
-OPTIONAL MATCH (ib:Crmemployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
-OPTIONAL MATCH (cb:Crmemployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
-OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
-FOREACH (ignoreMe in CASE WHEN c.name IS NOT NULL THEN [1] ELSE [] END |MERGE (ca)-[:USED_BY]-(c))
-FOREACH (ignoreMe in CASE WHEN ib.name IS NOT NULL THEN [1] ELSE [] END |MERGE (ca)-[:INSTALLED_BY]-(ib))
-FOREACH (ignoreMe in CASE WHEN cb.name IS NOT NULL THEN [1] ELSE [] END |MERGE (ca)-[:CREATED_BY]-(cb))
-FOREACH (ignoreMe in CASE WHEN pa.name IS NOT NULL THEN [1] ELSE [] END |MERGE (pa)&lt;-[:CHILD_OF]-(ca))
-with ca,row
-OPTIONAL MATCH (ih:Crmhaas)
-FOREACH (ignoreMe in CASE WHEN trim(toLower(row.USER5))='haas' THEN [1] ELSE [] END | MERGE (ca)-[:BLUENET_OWNED]->(ih))
-RETURN ca.name,ca.recid,ca.createdon
+MATCH (ca:Rangerasset {recid:row.RECID})
+WITH COLLECT(DISTINCT ca) as assets,row
+UNWIND assets as ca
+// FIND relationships for the existing (:Rangerasset) node
+OPTIONAL MATCH (ca)-[mbr:MANUFACTURERED_BY]-(omb:Manufacturer)
+// REMOVE all relationships that are no longer correct
+FOREACH (ignoreMe in CASE WHEN omb.name IS NULL or row.MANUFACTURER &lt;&gt; omb.name THEN [1] ELSE [] END | DELETE mbr)
 ;</cypher>
+    <batch_size>500</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>assets</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>VALUE</parameter>
+        <field>VALUE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ACCOUNTRECID</parameter>
+        <field>ACCOUNTRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CONTACTRECID</parameter>
+        <field>CONTACTRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>PARENTASSETRECID</parameter>
+        <field>PARENTASSETRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>STATUS</parameter>
+        <field>STATUS</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>NAME</parameter>
+        <field>NAME</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>SERIALNO</parameter>
+        <field>SERIALNO</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ASSETCODE</parameter>
+        <field>ASSETCODE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>LOCATION</parameter>
+        <field>LOCATION</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>INSTALLEDBY</parameter>
+        <field>INSTALLEDBY</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>DESCRIPTION</parameter>
+        <field>DESCRIPTION</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>MANUFACTURER</parameter>
+        <field>MANUFACTURER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>MODEL</parameter>
+        <field>MODEL</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER3</parameter>
+        <field>USER3</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEUSER</parameter>
+        <field>CREATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEDATE</parameter>
+        <field>CREATEDATE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEDATE</parameter>
+        <field>UPDATEDATE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER5</parameter>
+        <field>USER5</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>WARRANTYEXPDATE</parameter>
+        <field>WARRANTYEXPDATE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER1</parameter>
+        <field>USER1</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>816</xloc>
+      <yloc>208</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Modify :Rangerassets (model/parent/haas) for modified assets</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $assets as row
+MATCH (ca:Rangerasset {recid:row.RECID})
+
+WITH COLLECT(DISTINCT ca) as assets,row
+UNWIND assets as ca
+
+OPTIONAL MATCH (pa:Rangerasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
+OPTIONAL MATCH (md:Model {name:coalesce(row.MODEL,'None Provided')})
+OPTIONAL MATCH (ih:Rangerhaas)
+
+// FIND relationships for the existing (:Rangerasset) node
+OPTIONAL MATCH (ca)-[cor:CHILD_OF]-(oco:Rangerasset)
+OPTIONAL MATCH (ca)-[aimr:ASSET_IS_MODEL]->(oaim:Model)
+OPTIONAL MATCH (ca)-[bor:BLUENET_OWNED]-(obo:Rangerhaas)
+
+// REMOVE all relationships that are no longer correct
+FOREACH (ignoreMe in CASE WHEN oco.recid IS NULL or (row.PARENTASSETRECID &lt;&gt; oco.recid)  THEN [1] ELSE [] END | DELETE cor)
+FOREACH (ignoreMe in CASE WHEN oaim.name IS NULL or (row.MODEL &lt;&gt; oaim.name)  THEN [1] ELSE [] END | DELETE aimr)
+FOREACH (ignoreMe in CASE WHEN (trim(toLower(row.USER5)) &lt;&gt; 'haas')  THEN [1] ELSE [] END | DELETE bor)
+
+// RECREATE proper RELATIONSHIPS if they are missing
+FOREACH (ignoreMe in CASE WHEN pa.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (pa)&lt;-[:CHILD_OF]-(ca))
+//FOREACH (ignoreMe in CASE WHEN md.name IS NULL THEN [1] ELSE [] END | MERGE (a)-[:ASSET_IS_MODEL]->(md))
+FOREACH (ignoreMe in CASE WHEN row.MODEL is not null and trim(row.MODEL) &lt;&gt; "" THEN [1] ELSE [] END | MERGE (md:Model {name:row.MODEL}))
+FOREACH (ignoreMe in CASE WHEN md.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_IS_MODEL]->(md))
+FOREACH (ignoreMe in CASE WHEN trim(toLower(row.USER5))='haas' and ih.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:BLUENET_OWNED]->(ih))
+;</cypher>
+    <batch_size>500</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>assets</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>VALUE</parameter>
+        <field>VALUE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ACCOUNTRECID</parameter>
+        <field>ACCOUNTRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CONTACTRECID</parameter>
+        <field>CONTACTRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>PARENTASSETRECID</parameter>
+        <field>PARENTASSETRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>STATUS</parameter>
+        <field>STATUS</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>NAME</parameter>
+        <field>NAME</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>SERIALNO</parameter>
+        <field>SERIALNO</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ASSETCODE</parameter>
+        <field>ASSETCODE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>LOCATION</parameter>
+        <field>LOCATION</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>INSTALLEDBY</parameter>
+        <field>INSTALLEDBY</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>DESCRIPTION</parameter>
+        <field>DESCRIPTION</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>MANUFACTURER</parameter>
+        <field>MANUFACTURER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>MODEL</parameter>
+        <field>MODEL</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER3</parameter>
+        <field>USER3</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEUSER</parameter>
+        <field>CREATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEDATE</parameter>
+        <field>CREATEDATE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEDATE</parameter>
+        <field>UPDATEDATE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER5</parameter>
+        <field>USER5</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>WARRANTYEXPDATE</parameter>
+        <field>WARRANTYEXPDATE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER1</parameter>
+        <field>USER1</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>816</xloc>
+      <yloc>304</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Modify :Rangerassets for modified assets </name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $assets as row
+MATCH (ca:Rangerasset {recid:row.RECID})
+MATCH (a:Company {acctrecid:coalesce(row.ACCOUNTRECID,'None Provided')})
+
+OPTIONAL MATCH (rs:Recordstatus {state:row.STATUS})
+OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
+OPTIONAL MATCH (ib:Rangeremployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
+OPTIONAL MATCH (cb:Rangeremployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
+OPTIONAL MATCH (ic:Assetcategory {name:coalesce(row.USER1,'None Provided')})
+OPTIONAL MATCH (at:Assettype {name:coalesce(row.VALUE,'None Provided')})
+
+// FIND relationships for the existing (:Rangerasset) node
+OPTIONAL MATCH (ca)-[asr:ASSET_STATE]-(oas:Recordstatus)
+OPTIONAL MATCH (ca)-[aor:ASSET_OF]-(oao:Company)
+OPTIONAL MATCH (ca)-[ubr:USED_BY]-(oub:Contact)
+OPTIONAL MATCH (ca)-[ibr:INSTALLED_BY]-(oib:Rangeremployee)
+OPTIONAL MATCH (ca)-[cbr:CREATED_BY]-(ocb:Rangeremployee)
+OPTIONAL MATCH (ca)-[icr:IN_CATEGORY]->(oic:Assetcategory)
+OPTIONAL MATCH (ca)-[atr:ASSET_TYPE]->(oat:Assettype)
+
+// REMOVE all relationships that are no longer correct
+FOREACH (ignoreMe in CASE WHEN row.STATUS &lt;&gt; oas.state THEN [1] ELSE [] END | DELETE asr)
+FOREACH (ignoreMe in CASE WHEN row.ACCOUNTRECID &lt;&gt; oao.acctrecid THEN [1] ELSE [] END | DELETE aor)
+FOREACH (ignoreMe in CASE WHEN row.CONTACTRECID &lt;&gt; oub.acctrecid THEN [1] ELSE [] END | DELETE ubr)
+FOREACH (ignoreMe in CASE WHEN oib.acctrecid IS NULL or (row.INSTALLEDBY &lt;&gt; oib.acctrecid)  THEN [1] ELSE [] END | DELETE ibr)
+FOREACH (ignoreMe in CASE WHEN ocb.acctrecid IS NULL or (row.CREATEUSER &lt;&gt; ocb.acctrecid)  THEN [1] ELSE [] END | DELETE cbr)
+FOREACH (ignoreMe in CASE WHEN oic.name IS NULL or (row.USER1 &lt;&gt; oic.name and trim(row.USER1) &lt;&gt; oic.name)  THEN [1] ELSE [] END | DELETE icr)
+FOREACH (ignoreMe in CASE WHEN oat.name IS NULL or (row.VALUE &lt;&gt; oat.name and trim(row.VALUE) &lt;&gt; oat.name)  THEN [1] ELSE [] END | DELETE atr)
+
+// REMOVE all node properties that are no longer correct (then set to the values based on the row)
+FOREACH (ignoreMe in CASE WHEN a.name='None Provided' THEN [1] ELSE [] END | SET ca.company=row.ACCOUNTRECID)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.name,'isnull') &lt;&gt; coalesce(trim(toLower(row.NAME)),'isnull') THEN [1] ELSE [] END | SET ca.name=trim(toLower(row.NAME)))
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.category,'isnull') &lt;&gt; coalesce(row.USER1,'isnull') THEN [1] ELSE [] END | SET ca.category=row.USER1)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.type,'isnull') &lt;&gt; coalesce(row.VALUE,'isnull') THEN [1] ELSE [] END | SET ca.type=row.VALUE)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.manufacturer,'isnull') &lt;&gt; coalesce(row.MANUFACTURER,'isnull') THEN [1] ELSE [] END | SET ca.manufacturer=row.MANUFACTURER)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.model,'isnull') &lt;&gt; coalesce(row.MODEL,'isnull') THEN [1] ELSE [] END | SET ca.model=row.MODEL)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.assettag,'isnull') &lt;&gt; coalesce(row.ASSETCODE,'isnull') THEN [1] ELSE [] END | SET ca.assettag=row.ASSETCODE)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.location,'isnull') &lt;&gt; coalesce(row.LOCATION,'isnull') THEN [1] ELSE [] END | SET ca.location=row.LOCATION)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.description,'isnull') &lt;&gt; coalesce(row.DESCRIPTION,'isnull') THEN [1] ELSE [] END | SET ca.description=row.DESCRIPTION)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.serial,'isnull') &lt;&gt; coalesce(toLower(apoc.text.replace(apoc.text.replace(row.SERIALNO, "[^a-zA-Z\\d]",""),"VMware","")),'isnull') THEN [1] ELSE [] END | SET ca.serial=toLower(apoc.text.replace(apoc.text.replace(row.SERIALNO, "[^a-zA-Z\\d]",""),"VMware","")))
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.mac,'isnull') &lt;&gt; coalesce(toLower(apoc.text.replace(row.USER3,"[^a-zA-Z\\d]","")),'isnull') THEN [1] ELSE [] END | SET ca.mac=toLower(apoc.text.replace(row.USER3,"[^a-zA-Z\\d]","")))
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.createdon,'isnull') &lt;&gt; coalesce(datetime(row.CREATEDATE).epochmillis,'isnull') THEN [1] ELSE [] END | SET ca.createdon=datetime(row.CREATEDATE).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.updatedon,'isnull') &lt;&gt; coalesce(datetime(row.UPDATEDATE).epochmillis,'isnull') THEN [1] ELSE [] END | SET ca.updatedon=datetime(row.UPDATEDATE).epochmillis)
+FOREACH (ignoreMe in CASE WHEN coalesce(ca.expireson,'isnull') &lt;&gt; coalesce(datetime(row.WARRANTYEXPDATE).epochmillis,'isnull') THEN [1] ELSE [] END | SET ca.expireson=datetime(row.WARRANTYEXPDATE).epochmillis)
+
+// RECREATE proper RELATIONSHIPS if they are missing
+FOREACH (ignoreMe in CASE WHEN ca.recid IS NOT NULL and rs.state IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_STATE]-(rs))
+FOREACH (ignoreMe in CASE WHEN a.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_OF]->(a))
+FOREACH (ignoreMe in CASE WHEN c.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:USED_BY]-(c))
+FOREACH (ignoreMe in CASE WHEN ib.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:INSTALLED_BY]-(ib))
+FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:CREATED_BY]-(cb))
+FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:IN_CATEGORY]->(ic))
+FOREACH (ignoreMe in CASE WHEN at.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_TYPE]->(at))
+//SET date for last modified Asset
+WITH ca.updatedon as lastmodified
+MATCH (cdl:Rangerdataload {name:'RangerMSP'})
+FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedasset or cdl.lastmodifiedasset IS NULL THEN [1] ELSE [] END | SET cdl.lastmodifiedasset=lastmodified)
+;
+</cypher>
     <batch_size>500</batch_size>
     <read_only>N</read_only>
     <nr_retries_on_error/>
@@ -227,694 +610,15 @@ RETURN ca.name,ca.recid,ca.createdon
         <type>String</type>
       </mapping>
     </mappings>
-    <returns>
-      <return>
-        <name>ca.name</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>ca.recid</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>ca.createdon</name>
-        <type>Integer</type>
-        <source_type>Integer</source_type>
-      </return>
-    </returns>
+    <returns/>
     <attributes/>
     <GUI>
-      <xloc>800</xloc>
-      <yloc>48</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Get last :Crmasset</name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>N</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
-OPTIONAL MATCH (l:Crmasset)
-WITH max(coalesce(l.createdon,0)) as lastnewasset, max(coalesce(l.updatedon,0)) as lastmodifiedasset,cdl
-WITH COLLECT(lastnewasset)+COLLECT(lastmodifiedasset)+cdl.crminit as tstamps
-UNWIND tstamps as ts
-WITH min(ts) as lastmodifiedasset
-WITH apoc.date.format(coalesce(lastmodifiedasset,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastmodifiedasset
-//RETURN '1990-08-14 14:34:40.040' as lastmodifiedasset
-RETURN lastmodifiedasset
-;</cypher>
-    <batch_size/>
-    <read_only>Y</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>N</unwind>
-    <unwind_map/>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings/>
-    <returns>
-      <return>
-        <name>lastmodifiedasset</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-    </returns>
-    <attributes/>
-    <GUI>
-      <xloc>112</xloc>
+      <xloc>816</xloc>
       <yloc>96</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>Get job variables</name>
-    <type>GetVariable</type>
-    <description/>
-    <distribute>N</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <name>jobname</name>
-        <variable> ${Internal.Workflow.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>transname</name>
-        <variable>${Internal.Pipeline.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>tdir</name>
-        <variable>${Internal.Pipeline.Filename.Folder}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>jdir</name>
-        <variable>${Internal.Workflow.Filename.Folder}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>jfilename</name>
-        <variable>${Internal.Workflow.Filename.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>tfilename</name>
-        <variable>${Internal.Pipeline.Filename.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-    </fields>
-    <attributes/>
-    <GUI>
-      <xloc>192</xloc>
-      <yloc>256</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Modify :Crmassets (manufacturered) for modified assets </name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $assets as row
-MATCH (ca:Crmasset {recid:row.RECID})
-WITH COLLECT(DISTINCT ca) as assets,row
-UNWIND assets as ca
-// FIND relationships for the existing (:Crmasset) node
-OPTIONAL MATCH (ca)-[mbr:MANUFACTURED_BY]-(omb:Manufacturer)
-// REMOVE all relationships that are no longer correct
-FOREACH (ignoreMe in CASE WHEN omb.name IS NULL or row.MANUFACTURER &lt;&gt; omb.name THEN [1] ELSE [] END | DELETE mbr)
-;</cypher>
-    <batch_size>50</batch_size>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>assets</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>VALUE</parameter>
-        <field>VALUE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>RECID</parameter>
-        <field>RECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>ACCOUNTRECID</parameter>
-        <field>ACCOUNTRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CONTACTRECID</parameter>
-        <field>CONTACTRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>PARENTASSETRECID</parameter>
-        <field>PARENTASSETRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>STATUS</parameter>
-        <field>STATUS</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>NAME</parameter>
-        <field>NAME</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>SERIALNO</parameter>
-        <field>SERIALNO</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>ASSETCODE</parameter>
-        <field>ASSETCODE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>LOCATION</parameter>
-        <field>LOCATION</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>INSTALLEDBY</parameter>
-        <field>INSTALLEDBY</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>DESCRIPTION</parameter>
-        <field>DESCRIPTION</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>MANUFACTURER</parameter>
-        <field>MANUFACTURER</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>MODEL</parameter>
-        <field>MODEL</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER3</parameter>
-        <field>USER3</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CREATEUSER</parameter>
-        <field>CREATEUSER</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CREATEDATE</parameter>
-        <field>CREATEDATE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>UPDATEDATE</parameter>
-        <field>UPDATEDATE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER5</parameter>
-        <field>USER5</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>WARRANTYEXPDATE</parameter>
-        <field>WARRANTYEXPDATE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER1</parameter>
-        <field>USER1</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns/>
-    <attributes/>
-    <GUI>
-      <xloc>800</xloc>
-      <yloc>208</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Modify :Crmassets (model/parent/haas) for modified assets</name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $assets as row
-MATCH (ca:Crmasset {recid:row.RECID})
-
-WITH COLLECT(DISTINCT ca) as assets,row
-UNWIND assets as ca
-
-OPTIONAL MATCH (pa:Crmasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
-OPTIONAL MATCH (md:Model {name:coalesce(row.MODEL,'None Provided')})
-OPTIONAL MATCH (ih:Crmhaas)
-
-// FIND relationships for the existing (:Crmasset) node
-OPTIONAL MATCH (ca)-[cor:CHILD_OF]-(oco:Crmasset)
-OPTIONAL MATCH (ca)-[aimr:ASSET_IS_MODEL]->(oaim:Model)
-OPTIONAL MATCH (ca)-[bor:BLUENET_OWNED]-(obo:Crmhaas)
-
-// REMOVE all relationships that are no longer correct
-FOREACH (ignoreMe in CASE WHEN oco.recid IS NULL or (row.PARENTASSETRECID &lt;&gt; oco.recid)  THEN [1] ELSE [] END | DELETE cor)
-FOREACH (ignoreMe in CASE WHEN oaim.name IS NULL or (row.MODEL &lt;&gt; oaim.name)  THEN [1] ELSE [] END | DELETE aimr)
-FOREACH (ignoreMe in CASE WHEN (trim(toLower(row.USER5)) &lt;&gt; 'haas')  THEN [1] ELSE [] END | DELETE bor)
-
-// RECREATE proper RELATIONSHIPS if they are missing
-FOREACH (ignoreMe in CASE WHEN pa.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (pa)&lt;-[:CHILD_OF]-(ca))
-//FOREACH (ignoreMe in CASE WHEN md.name IS NULL THEN [1] ELSE [] END | MERGE (a)-[:ASSET_IS_MODEL]->(md))
-FOREACH (ignoreMe in CASE WHEN row.MODEL is not null and trim(row.MODEL) &lt;&gt; "" THEN [1] ELSE [] END | MERGE (md:Model {name:row.MODEL}))
-FOREACH (ignoreMe in CASE WHEN md.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_IS_MODEL]->(md))
-FOREACH (ignoreMe in CASE WHEN trim(toLower(row.USER5))='haas' and ih.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:BLUENET_OWNED]->(ih))
-;</cypher>
-    <batch_size>50</batch_size>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>assets</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>VALUE</parameter>
-        <field>VALUE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>RECID</parameter>
-        <field>RECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>ACCOUNTRECID</parameter>
-        <field>ACCOUNTRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CONTACTRECID</parameter>
-        <field>CONTACTRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>PARENTASSETRECID</parameter>
-        <field>PARENTASSETRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>STATUS</parameter>
-        <field>STATUS</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>NAME</parameter>
-        <field>NAME</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>SERIALNO</parameter>
-        <field>SERIALNO</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>ASSETCODE</parameter>
-        <field>ASSETCODE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>LOCATION</parameter>
-        <field>LOCATION</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>INSTALLEDBY</parameter>
-        <field>INSTALLEDBY</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>DESCRIPTION</parameter>
-        <field>DESCRIPTION</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>MANUFACTURER</parameter>
-        <field>MANUFACTURER</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>MODEL</parameter>
-        <field>MODEL</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER3</parameter>
-        <field>USER3</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CREATEUSER</parameter>
-        <field>CREATEUSER</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CREATEDATE</parameter>
-        <field>CREATEDATE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>UPDATEDATE</parameter>
-        <field>UPDATEDATE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER5</parameter>
-        <field>USER5</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>WARRANTYEXPDATE</parameter>
-        <field>WARRANTYEXPDATE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER1</parameter>
-        <field>USER1</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns/>
-    <attributes/>
-    <GUI>
-      <xloc>800</xloc>
-      <yloc>288</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Modify :Crmassets (state/installed/created/used/company/cat/type) for modified assets </name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $assets as row
-MATCH (ca:Crmasset {recid:row.RECID})
-MATCH (a:Company {acctrecid:coalesce(row.ACCOUNTRECID,'None Provided')})
-WITH COLLECT(DISTINCT ca) as assets,a,row
-UNWIND assets as ca
-
-OPTIONAL MATCH (rs:Recordstatus {state:row.STATUS})
-OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
-OPTIONAL MATCH (ib:Crmemployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
-OPTIONAL MATCH (cb:Crmemployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
-OPTIONAL MATCH (ic:Assetcategory {name:coalesce(row.USER1,'None Provided')})
-OPTIONAL MATCH (at:Assettype {name:coalesce(row.VALUE,'None Provided')})
-
-
-
-// FIND relationships for the existing (:Crmasset) node
-OPTIONAL MATCH (ca)-[asr:ASSET_STATE]-(oas:Recordstatus)
-OPTIONAL MATCH (ca)-[aor:ASSET_OF]-(oao:Company)
-OPTIONAL MATCH (ca)-[ubr:USED_BY]-(oub:Contact)
-OPTIONAL MATCH (ca)-[ibr:INSTALLED_BY]-(oib:Crmemployee)
-OPTIONAL MATCH (ca)-[cbr:CREATED_BY]-(ocb:Crmemployee)
-OPTIONAL MATCH (ca)-[icr:IN_CATEGORY]->(oic:Assetcategory)
-OPTIONAL MATCH (ca)-[atr:ASSET_TYPE]->(oat:Assettype)
-
-// REMOVE all relationships that are no longer correct
-FOREACH (ignoreMe in CASE WHEN row.STATUS &lt;&gt; oas.state THEN [1] ELSE [] END | DELETE asr)
-FOREACH (ignoreMe in CASE WHEN row.ACCOUNTRECID &lt;&gt; oao.acctrecid THEN [1] ELSE [] END | DELETE aor)
-FOREACH (ignoreMe in CASE WHEN row.CONTACTRECID &lt;&gt; oub.acctrecid THEN [1] ELSE [] END | DELETE ubr)
-FOREACH (ignoreMe in CASE WHEN oib.acctrecid IS NULL or (row.INSTALLEDBY &lt;&gt; oib.acctrecid)  THEN [1] ELSE [] END | DELETE ibr)
-FOREACH (ignoreMe in CASE WHEN ocb.acctrecid IS NULL or (row.CREATEUSER &lt;&gt; ocb.acctrecid)  THEN [1] ELSE [] END | DELETE cbr)
-FOREACH (ignoreMe in CASE WHEN oic.name IS NULL or (row.USER1 &lt;&gt; oic.name and trim(row.USER1) &lt;&gt; oic.name)  THEN [1] ELSE [] END | DELETE icr)
-FOREACH (ignoreMe in CASE WHEN oat.name IS NULL or (row.VALUE &lt;&gt; oat.name and trim(row.VALUE) &lt;&gt; oat.name)  THEN [1] ELSE [] END | DELETE atr)
-
-// REMOVE all node properties that are no longer correct (then set to the values based on the row)
-FOREACH (ignoreMe in CASE WHEN a.name='None Provided' THEN [1] ELSE [] END | SET ca.company=row.ACCOUNTRECID)
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.name,'isnull') &lt;&gt; coalesce(trim(toLower(row.NAME)),'isnull') THEN [1] ELSE [] END | SET ca.name=trim(toLower(row.NAME)))
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.category,'isnull') &lt;&gt; coalesce(row.USER1,'isnull') THEN [1] ELSE [] END | SET ca.category=row.USER1)
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.type,'isnull') &lt;&gt; coalesce(row.VALUE,'isnull') THEN [1] ELSE [] END | SET ca.type=row.VALUE)
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.manufacturer,'isnull') &lt;&gt; coalesce(row.MANUFACTURER,'isnull') THEN [1] ELSE [] END | SET ca.manufacturer=row.MANUFACTURER)
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.model,'isnull') &lt;&gt; coalesce(row.MODEL,'isnull') THEN [1] ELSE [] END | SET ca.model=row.MODEL)
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.assettag,'isnull') &lt;&gt; coalesce(row.ASSETCODE,'isnull') THEN [1] ELSE [] END | SET ca.assettag=row.ASSETCODE)
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.location,'isnull') &lt;&gt; coalesce(row.LOCATION,'isnull') THEN [1] ELSE [] END | SET ca.location=row.LOCATION)
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.description,'isnull') &lt;&gt; coalesce(row.DESCRIPTION,'isnull') THEN [1] ELSE [] END | SET ca.description=row.DESCRIPTION)
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.serial,'isnull') &lt;&gt; coalesce(toLower(apoc.text.replace(apoc.text.replace(row.SERIALNO, "[^a-zA-Z\\d]",""),"VMware","")),'isnull') THEN [1] ELSE [] END | SET ca.serial=toLower(apoc.text.replace(apoc.text.replace(row.SERIALNO, "[^a-zA-Z\\d]",""),"VMware","")))
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.mac,'isnull') &lt;&gt; coalesce(toLower(apoc.text.replace(row.USER3,"[^a-zA-Z\\d]","")),'isnull') THEN [1] ELSE [] END | SET ca.mac=toLower(apoc.text.replace(row.USER3,"[^a-zA-Z\\d]","")))
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.createdon,'isnull') &lt;&gt; coalesce(apoc.date.parse(row.CREATEDATE,'ms',"yyyy-MM-dd HH:mm:ss.SSS","CST"),'isnull') THEN [1] ELSE [] END | SET ca.createdon=apoc.date.parse(row.CREATEDATE,'ms',"yyyy-MM-dd HH:mm:ss.SSS","CST"))
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.updatedon,'isnull') &lt;&gt; coalesce(apoc.date.parse(row.UPDATEDATE,'ms',"yyyy-MM-dd HH:mm:ss.SSS","CST"),'isnull') THEN [1] ELSE [] END | SET ca.updatedon=apoc.date.parse(row.UPDATEDATE,'ms',"yyyy-MM-dd HH:mm:ss.SSS","CST"))
-FOREACH (ignoreMe in CASE WHEN coalesce(ca.expireson,'isnull') &lt;&gt; coalesce(apoc.date.parse(replace(row.WARRANTYEXPDATE,'/','-'),'ms',"yyyy-MM-dd HH:mm:ss.SSS","CST"),'isnull') THEN [1] ELSE [] END | SET ca.expireson=apoc.date.parse(replace(row.WARRANTYEXPDATE,'/','-'),'ms',"yyyy-MM-dd HH:mm:ss.SSS","CST"))
-
-// RECREATE proper RELATIONSHIPS if they are missing
-FOREACH (ignoreMe in CASE WHEN ca.recid IS NOT NULL and rs.state IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_STATE]-(rs))
-FOREACH (ignoreMe in CASE WHEN a.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_OF]->(a))
-FOREACH (ignoreMe in CASE WHEN c.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:USED_BY]-(c))
-FOREACH (ignoreMe in CASE WHEN ib.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:INSTALLED_BY]-(ib))
-FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:CREATED_BY]-(cb))
-FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:IN_CATEGORY]->(ic))
-FOREACH (ignoreMe in CASE WHEN at.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_TYPE]->(at))
-;
-</cypher>
-    <batch_size>50</batch_size>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>assets</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>VALUE</parameter>
-        <field>VALUE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>RECID</parameter>
-        <field>RECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>ACCOUNTRECID</parameter>
-        <field>ACCOUNTRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CONTACTRECID</parameter>
-        <field>CONTACTRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>PARENTASSETRECID</parameter>
-        <field>PARENTASSETRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>STATUS</parameter>
-        <field>STATUS</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>NAME</parameter>
-        <field>NAME</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>SERIALNO</parameter>
-        <field>SERIALNO</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>ASSETCODE</parameter>
-        <field>ASSETCODE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>LOCATION</parameter>
-        <field>LOCATION</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>INSTALLEDBY</parameter>
-        <field>INSTALLEDBY</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>DESCRIPTION</parameter>
-        <field>DESCRIPTION</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>MANUFACTURER</parameter>
-        <field>MANUFACTURER</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>MODEL</parameter>
-        <field>MODEL</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER3</parameter>
-        <field>USER3</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CREATEUSER</parameter>
-        <field>CREATEUSER</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CREATEDATE</parameter>
-        <field>CREATEDATE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>UPDATEDATE</parameter>
-        <field>UPDATEDATE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER5</parameter>
-        <field>USER5</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>WARRANTYEXPDATE</parameter>
-        <field>WARRANTYEXPDATE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER1</parameter>
-        <field>USER1</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns/>
-    <attributes/>
-    <GUI>
-      <xloc>800</xloc>
-      <yloc>128</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Query CommitCRM Assets (assets) table</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${RangerMSP-ds}</connection>
-    <execute_each_row>N</execute_each_row>
-    <lookup>Get last :Crmasset</lookup>
-    <limit>0</limit>
-    <sql>select v.VALUE,a.RECID,a.ACCOUNTRECID,a.CONTACTRECID,a.PARENTASSETRECID,a.STATUS,a.NAME,a.SERIALNO,a.ASSETCODE,a.LOCATION,a.WARRANTYEXPDATE,a.INSTALLEDBY,CAST(a.DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,a.MANUFACTURER,a.MODEL,a.USER3,a.CREATEUSER,a.CREATEDATE,a.UPDATEDATE,a.USER1,a.USER5 from ValuesList as v INNER JOIN Assets AS a on v.RECID = a.ASSETTYPE where a.RECID is not null AND a.CREATEDATE > ?</sql>
-    <variables_active>Y</variables_active>
-    <attributes/>
-    <GUI>
-      <xloc>384</xloc>
-      <yloc>48</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Query CommitCRM Assets (modified assets)</name>
+    <name>Query RangerMSP Assets (modified assets)</name>
     <type>TableInput</type>
     <description/>
     <distribute>N</distribute>
@@ -926,98 +630,17 @@ FOREACH (ignoreMe in CASE WHEN at.name IS NOT NULL THEN [1] ELSE [] END | MERGE 
     </partitioning>
     <connection>${RangerMSP-ds}</connection>
     <execute_each_row>N</execute_each_row>
-    <lookup>Get last :Crmasset</lookup>
+    <lookup>Get last :Rangerasset</lookup>
     <limit>0</limit>
-    <sql>select v.VALUE,a.RECID,a.ACCOUNTRECID,a.CONTACTRECID,a.PARENTASSETRECID,a.STATUS,a.NAME,a.SERIALNO,a.ASSETCODE,a.WARRANTYEXPDATE,a.LOCATION,a.INSTALLEDBY,CAST(a.DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,a.MANUFACTURER,a.MODEL,a.USER3,a.CREATEUSER,CAST(a.CREATEDATE as SQL_VARCHAR) AS CREATEDATE,CAST(a.UPDATEDATE as SQL_VARCHAR) AS UPDATEDATE,a.USER1,a.USER5 from ValuesList as v INNER JOIN Assets AS a on v.RECID = a.ASSETTYPE where a.RECID is not null AND a.UPDATEDATE > ?
+    <sql>select v.VALUE,a.RECID,a.ACCOUNTRECID,a.CONTACTRECID,a.PARENTASSETRECID,a.STATUS,a.NAME,a.SERIALNO,a.ASSETCODE,a.WARRANTYEXPDATE,a.LOCATION,a.INSTALLEDBY,CAST(a.DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,a.MANUFACTURER,a.MODEL,a.USER3,a.CREATEUSER,a.CREATEDATE,UPDATEDATE,a.USER1,a.USER5 from ValuesList as v INNER JOIN Assets AS a on v.RECID = a.ASSETTYPE where a.RECID is not null AND a.UPDATEDATE > ?
+
+
 </sql>
     <variables_active>Y</variables_active>
     <attributes/>
     <GUI>
       <xloc>384</xloc>
-      <yloc>128</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Update Job/TFLogging</name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $taskparams as t
-WITH t,timestamp() as tfstart,trim(replace(t.jobname,'Parent Job Name',t.transname)) as jobname
-MATCH (l:N4jlogging {jobname:jobname})
-SET l.lasttfrun=tfstart,l.jobname=jobname,l.transname=t.transname,l.jobstatus='running',l.tdir=t.tdir,l.tfilename=t.tfilename,l.jdir=t.jdir,l.jfilename=t.jfilename
-RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobstart,l.jobname
-;</cypher>
-    <batch_size/>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>taskparams</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>jobname</parameter>
-        <field>jobname</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>transname</parameter>
-        <field>transname</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>tdir</parameter>
-        <field>tdir</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>jdir</parameter>
-        <field>jdir</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>jfilename</parameter>
-        <field>jfilename</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>tfilename</parameter>
-        <field>tfilename</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns>
-      <return>
-        <name>jobstart</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>l.jobname</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>l.transname</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-    </returns>
-    <attributes/>
-    <GUI>
-      <xloc>368</xloc>
-      <yloc>256</yloc>
+      <yloc>96</yloc>
     </GUI>
   </transform>
   <transform_error_handling>

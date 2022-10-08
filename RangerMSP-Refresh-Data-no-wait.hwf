@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow>
-  <name>RangerMSP-Refresh-Data</name>
+  <name>RangerMSP-Refresh-Data-no-wait</name>
   <name_sync_with_filename>Y</name_sync_with_filename>
   <description/>
   <extended_description/>
@@ -36,7 +36,7 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>448</xloc>
+      <xloc>544</xloc>
       <yloc>64</yloc>
       <attributes_hac/>
     </action>
@@ -64,7 +64,7 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>1312</xloc>
+      <xloc>576</xloc>
       <yloc>160</yloc>
       <attributes_hac/>
     </action>
@@ -92,7 +92,7 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>1168</xloc>
+      <xloc>224</xloc>
       <yloc>160</yloc>
       <attributes_hac/>
     </action>
@@ -120,8 +120,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>704</xloc>
-      <yloc>160</yloc>
+      <xloc>304</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -138,7 +138,7 @@
       <weekDay>1</weekDay>
       <DayOfMonth>1</DayOfMonth>
       <parallel>N</parallel>
-      <xloc>48</xloc>
+      <xloc>80</xloc>
       <yloc>64</yloc>
       <attributes_hac/>
     </action>
@@ -166,16 +166,16 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>112</xloc>
-      <yloc>160</yloc>
+      <xloc>960</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
-      <name>Update (:Ticket) nodes</name>
+      <name>RangerMSP-new-Crmticket-nodes</name>
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>${PROJECT_HOME}/../RangerMSP/Ticket/RangerMSP-update-Crmticket-nodes.hpl</filename>
+      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Ticket\RangerMSP-new-Crmticket-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -194,8 +194,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>112</xloc>
-      <yloc>320</yloc>
+      <xloc>960</xloc>
+      <yloc>336</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -223,7 +223,7 @@
       </parameters>
       <parallel>N</parallel>
       <xloc>288</xloc>
-      <yloc>320</yloc>
+      <yloc>336</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -250,8 +250,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>880</xloc>
-      <yloc>160</yloc>
+      <xloc>80</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -278,7 +278,7 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>1040</xloc>
+      <xloc>80</xloc>
       <yloc>160</yloc>
       <attributes_hac/>
     </action>
@@ -288,8 +288,8 @@
       <type>SUCCESS</type>
       <attributes/>
       <parallel>N</parallel>
-      <xloc>848</xloc>
-      <yloc>320</yloc>
+      <xloc>256</xloc>
+      <yloc>432</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -316,8 +316,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>656</xloc>
-      <yloc>320</yloc>
+      <xloc>80</xloc>
+      <yloc>432</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -344,12 +344,12 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>480</xloc>
-      <yloc>320</yloc>
+      <xloc>80</xloc>
+      <yloc>336</yloc>
       <attributes_hac/>
     </action>
     <action>
-      <name>Set-Indexes</name>
+      <name>Set-RangerMSP prereq and Indexes</name>
       <description/>
       <type>WORKFLOW</type>
       <attributes/>
@@ -371,7 +371,7 @@
       </parameters>
       <set_append_logfile>N</set_append_logfile>
       <parallel>N</parallel>
-      <xloc>176</xloc>
+      <xloc>272</xloc>
       <yloc>64</yloc>
       <attributes_hac/>
     </action>
@@ -398,8 +398,8 @@
       </parameters>
       <set_append_logfile>N</set_append_logfile>
       <parallel>N</parallel>
-      <xloc>304</xloc>
-      <yloc>160</yloc>
+      <xloc>752</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -425,8 +425,8 @@
       </parameters>
       <set_append_logfile>N</set_append_logfile>
       <parallel>N</parallel>
-      <xloc>496</xloc>
-      <yloc>160</yloc>
+      <xloc>544</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -458,42 +458,6 @@
       <attributes_hac/>
     </action>
     <action>
-      <name>Wait for</name>
-      <description/>
-      <type>DELAY</type>
-      <attributes/>
-      <maximumTimeout>2</maximumTimeout>
-      <scaletime>0</scaletime>
-      <parallel>N</parallel>
-      <xloc>304</xloc>
-      <yloc>64</yloc>
-      <attributes_hac/>
-    </action>
-    <action>
-      <name>Wait for 2</name>
-      <description/>
-      <type>DELAY</type>
-      <attributes/>
-      <maximumTimeout>2</maximumTimeout>
-      <scaletime>0</scaletime>
-      <parallel>N</parallel>
-      <xloc>608</xloc>
-      <yloc>64</yloc>
-      <attributes_hac/>
-    </action>
-    <action>
-      <name>Wait for 3</name>
-      <description/>
-      <type>DELAY</type>
-      <attributes/>
-      <maximumTimeout>2</maximumTimeout>
-      <scaletime>0</scaletime>
-      <parallel>N</parallel>
-      <xloc>896</xloc>
-      <yloc>64</yloc>
-      <attributes_hac/>
-    </action>
-    <action>
       <name>Initialize-RangerMSP-Tickets</name>
       <description/>
       <type>PIPELINE</type>
@@ -517,19 +481,7 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>1024</xloc>
-      <yloc>64</yloc>
-      <attributes_hac/>
-    </action>
-    <action>
-      <name>Wait for 4</name>
-      <description/>
-      <type>DELAY</type>
-      <attributes/>
-      <maximumTimeout>2</maximumTimeout>
-      <scaletime>0</scaletime>
-      <parallel>N</parallel>
-      <xloc>1168</xloc>
+      <xloc>960</xloc>
       <yloc>64</yloc>
       <attributes_hac/>
     </action>
@@ -557,22 +509,127 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>1312</xloc>
-      <yloc>64</yloc>
+      <xloc>960</xloc>
+      <yloc>160</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>RangerMSP-update-Crmticket-nodes</name>
+      <description/>
+      <type>PIPELINE</type>
+      <attributes/>
+      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Ticket\RangerMSP-update-Crmticket-nodes.hpl</filename>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <create_parent_folder>N</create_parent_folder>
+      <run_configuration>local</run_configuration>
+      <parameters>
+        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>
+      <parallel>N</parallel>
+      <xloc>720</xloc>
+      <yloc>336</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>RangerMSP-new-contact-nodes</name>
+      <description/>
+      <type>PIPELINE</type>
+      <attributes/>
+      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Contact\RangerMSP-new-contact-nodes.hpl</filename>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <create_parent_folder>N</create_parent_folder>
+      <run_configuration>local</run_configuration>
+      <parameters>
+        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>
+      <parallel>N</parallel>
+      <xloc>400</xloc>
+      <yloc>160</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>RangerMSP-new-company-nodes</name>
+      <description/>
+      <type>PIPELINE</type>
+      <attributes/>
+      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Company\RangerMSP-new-company-nodes.hpl</filename>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <create_parent_folder>N</create_parent_folder>
+      <run_configuration>local</run_configuration>
+      <parameters>
+        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>
+      <parallel>N</parallel>
+      <xloc>752</xloc>
+      <yloc>160</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>RangerMSP-new-Crmcharge-nodes</name>
+      <description/>
+      <type>PIPELINE</type>
+      <attributes/>
+      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Charge\RangerMSP-new-Crmcharge-nodes.hpl</filename>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <create_parent_folder>N</create_parent_folder>
+      <run_configuration>local</run_configuration>
+      <parameters>
+        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>
+      <parallel>N</parallel>
+      <xloc>480</xloc>
+      <yloc>336</yloc>
       <attributes_hac/>
     </action>
   </actions>
   <hops>
     <hop>
-      <from>Update (:Company)</from>
-      <to>Update (:Contact)</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>N</unconditional>
-    </hop>
-    <hop>
       <from>Update (:Rangeritem) nodes</from>
-      <to>Update (:Ticket) nodes</to>
+      <to>RangerMSP-new-Crmticket-nodes</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>
@@ -641,28 +698,14 @@
       <unconditional>N</unconditional>
     </hop>
     <hop>
-      <from>Update (:Ticket) nodes</from>
-      <to>Update (:Charge) nodes</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>N</unconditional>
-    </hop>
-    <hop>
       <from>Start</from>
-      <to>Set-Indexes</to>
+      <to>Set-RangerMSP prereq and Indexes</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>Y</unconditional>
     </hop>
     <hop>
-      <from>Set-Indexes</from>
-      <to>Wait for</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>Wait for</from>
+      <from>Set-RangerMSP prereq and Indexes</from>
       <to>Initialize-RangerMSP-Asset</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
@@ -670,13 +713,6 @@
     </hop>
     <hop>
       <from>Initialize-RangerMSP-Asset</from>
-      <to>Wait for 2</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>Wait for 2</from>
       <to>Initialize-RangerMSP-Opps</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
@@ -684,13 +720,6 @@
     </hop>
     <hop>
       <from>Initialize-RangerMSP-Opps</from>
-      <to>Wait for 3</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>Wait for 3</from>
       <to>Initialize-RangerMSP-Tickets</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
@@ -698,24 +727,59 @@
     </hop>
     <hop>
       <from>Initialize-RangerMSP-Tickets</from>
-      <to>Wait for 4</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
-    <hop>
-      <from>Wait for 4</from>
       <to>Initialize-RangerMSP-Contracts</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>
     </hop>
     <hop>
+      <from>RangerMSP-new-Crmticket-nodes</from>
+      <to>RangerMSP-update-Crmticket-nodes</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Update (:Company)</from>
+      <to>RangerMSP-new-contact-nodes</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>RangerMSP-new-contact-nodes</from>
+      <to>Update (:Contact)</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
       <from>Initialize-RangerMSP-Contracts</from>
+      <to>RangerMSP-new-company-nodes</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>RangerMSP-new-company-nodes</from>
       <to>Update (:Company)</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>RangerMSP-update-Crmticket-nodes</from>
+      <to>RangerMSP-new-Crmcharge-nodes</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>RangerMSP-new-Crmcharge-nodes</from>
+      <to>Update (:Charge) nodes</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
     </hop>
   </hops>
   <notepads>

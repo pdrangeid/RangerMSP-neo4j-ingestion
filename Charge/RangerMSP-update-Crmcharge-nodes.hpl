@@ -24,34 +24,24 @@
   </notepads>
   <order>
     <hop>
-      <from>Query Charges (slips) table</from>
-      <to>Create new (:Crmcharge) nodes</to>
+      <from>Query RangerMSP Mod Charges (slips) table</from>
+      <to>Modify (:Rangercharge) nodes</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM Mod Charges (slips) table</from>
-      <to>Modify (:Crmcharge) nodes</to>
+      <from>Get last :Rangercharge</from>
+      <to>Query RangerMSP Mod Charges (slips) table</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Get job variables</from>
-      <to>Update Job/TFLogging</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Get last :Crmcharge</from>
-      <to>Query Charges (slips) table</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Get last :Crmcharge</from>
-      <to>Query CommitCRM Mod Charges (slips) table</to>
+      <from>Block until transforms finish</from>
+      <to>Update ticket lastcharge</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <transform>
-    <name>Create new (:Crmcharge) nodes</name>
-    <type>Neo4jCypherOutput</type>
+    <name>Block until transforms finish</name>
+    <type>BlockUntilTransformsFinish</type>
     <description/>
     <distribute>Y</distribute>
     <custom_distribution/>
@@ -60,247 +50,19 @@
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $charges as row
-MERGE (c:Crmcharge {recid:row.RECID})
-ON CREATE SET c.date=row.SLIPDATE,c.description=row.DESCRIPTION,c.hours=row.HOURSAMOUNT,c.quantity=row.QUANTITY,c.price=row.PRICE,c.createdon=datetime(row.CREATEDATE).epochmillis,c.updatedon=datetime(row.UPDATEDATE).epochmillis
-WITH *
-OPTIONAL MATCH (e:Crmemployee {acctrecid:coalesce(row.WORKERID,"Nothing")}) 
-OPTIONAL MATCH (t:Ticket {recid:coalesce(row.TICKETID,"Nothing")}) 
-OPTIONAL MATCH (i:Crmitem {recid:coalesce(row.ITEMID,"Nothing")})
-OPTIONAL MATCH (uu:Crmemployee {acctrecid:coalesce(row.UPDATEUSER,"Nothing")})
-OPTIONAL MATCH (cu:Crmemployee {acctrecid:coalesce(row.CREATEUSER,"Nothing")})
-OPTIONAL MATCH (ct:Contact {acctrecid:coalesce(row.CONTACTID,"Nothing")})
-OPTIONAL MATCH (bc:Crmcontract {recid:coalesce(row.BCRECID,"Nothing")})
-OPTIONAL MATCH (bk:Billkind {code:coalesce(row.BILLKIND,"Nothing")})
-OPTIONAL MATCH (bs:Billstage {code:coalesce(row.STAGE,"Nothing")})
-FOREACH (ignoreMe in CASE WHEN bk.code IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:IS_BILLABLE]->(bk))
-FOREACH (ignoreMe in CASE WHEN bs.code IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:BILLING_STAGE]->(bs))
-FOREACH (ignoreMe in CASE WHEN e.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:ENTRY_FOR]->(e))
-FOREACH (ignoreMe in CASE WHEN t.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:PART_OF_TICKET]->(t))
-FOREACH (ignoreMe in CASE WHEN i.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:INCLUDES_ITEM]->(i))
-FOREACH (ignoreMe in CASE WHEN uu.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:LAST_UPDATED_BY]->(uu))
-FOREACH (ignoreMe in CASE WHEN cu.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CREATED_BY]->(cu))
-FOREACH (ignoreMe in CASE WHEN ct.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:CLIENT_CONTACT]->(ct))
-FOREACH (ignoreMe in CASE WHEN bc.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:UNDER_CONTRACT]->(bc))
-;</cypher>
-    <batch_size>1000</batch_size>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>charges</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>BCCODE</parameter>
-        <field>BCCODE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>BCRECID</parameter>
-        <field>BCRECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>BILLKIND</parameter>
-        <field>BILLKIND</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CARDID</parameter>
-        <field>CARDID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CONTACTID</parameter>
-        <field>CONTACTID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>CREATEDATE</parameter>
-        <field>CREATEDATE</field>
-        <type>LocalDateTime</type>
-      </mapping>
-      <mapping>
-        <parameter>CREATEUSER</parameter>
-        <field>CREATEUSER</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>DESCRIPTION</parameter>
-        <field>DESCRIPTION</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>HOURSAMOUNT</parameter>
-        <field>HOURSAMOUNT</field>
-        <type>Float</type>
-      </mapping>
-      <mapping>
-        <parameter>ITEMID</parameter>
-        <field>ITEMID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>PRICE</parameter>
-        <field>PRICE</field>
-        <type>Float</type>
-      </mapping>
-      <mapping>
-        <parameter>QUANTITY</parameter>
-        <field>QUANTITY</field>
-        <type>Float</type>
-      </mapping>
-      <mapping>
-        <parameter>RECID</parameter>
-        <field>RECID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>SLIPDATE</parameter>
-        <field>SLIPDATE</field>
-        <type>LocalDateTime</type>
-      </mapping>
-      <mapping>
-        <parameter>STAGE</parameter>
-        <field>STAGE</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>TICKETID</parameter>
-        <field>TICKETID</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>TOTAL</parameter>
-        <field>TOTAL</field>
-        <type>Float</type>
-      </mapping>
-      <mapping>
-        <parameter>UPDATEDATE</parameter>
-        <field>UPDATEDATE</field>
-        <type>LocalDateTime</type>
-      </mapping>
-      <mapping>
-        <parameter>UPDATEUSER</parameter>
-        <field>UPDATEUSER</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>USER1</parameter>
-        <field>USER1</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>WORKERID</parameter>
-        <field>WORKERID</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns/>
+    <transforms>
+      <transform>
+        <name>Modify (:Rangercharge) nodes</name>
+      </transform>
+    </transforms>
     <attributes/>
     <GUI>
-      <xloc>592</xloc>
-      <yloc>80</yloc>
+      <xloc>240</xloc>
+      <yloc>304</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>Get job variables</name>
-    <type>GetVariable</type>
-    <description/>
-    <distribute>N</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <name>jobname</name>
-        <variable> ${Internal.Workflow.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>transname</name>
-        <variable>${Internal.Pipeline.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>tdir</name>
-        <variable>${Internal.Pipeline.Filename.Folder}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>jdir</name>
-        <variable>${Internal.Workflow.Filename.Folder}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>jfilename</name>
-        <variable>${Internal.Workflow.Filename.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>tfilename</name>
-        <variable>${Internal.Pipeline.Filename.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-    </fields>
-    <attributes/>
-    <GUI>
-      <xloc>144</xloc>
-      <yloc>320</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Get last :Crmcharge</name>
+    <name>Get last :Rangercharge</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>N</distribute>
@@ -311,15 +73,11 @@ FOREACH (ignoreMe in CASE WHEN bc.recid IS NOT NULL THEN [1] ELSE [] END | MERGE
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
-OPTIONAL MATCH (l:Crmcharge)
-WITH max(coalesce(l.createdon,0)) as lastnewcharge, max(coalesce(l.updatedon,0)) as lastmodifiedcharge,cdl
-WITH COLLECT(lastnewcharge)+COLLECT(lastmodifiedcharge)+cdl.crminit as tstamps,cdl
-UNWIND tstamps as ts
-WITH min(ts) as lastmodifiedcharge,cdl
-WITH apoc.date.format(coalesce(lastmodifiedcharge,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastmodifiedcharge,apoc.date.format(coalesce(cdl.chargelimiter,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS historylimit
+    <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
+WITH max(coalesce(cdl.lastmodifiedcharge,0)) as lastmodifiedcharge
+WITH apoc.date.format(lastmodifiedcharge,'ms','yyyy-MM-dd HH:mm:ss.sss') AS lastmodifiedcharge
 //RETURN '1990-08-14 14:34:40.040' as lastmodifiedcharge
-RETURN lastmodifiedcharge,historylimit
+RETURN lastmodifiedcharge
 ;</cypher>
     <batch_size/>
     <read_only>Y</read_only>
@@ -334,24 +92,19 @@ RETURN lastmodifiedcharge,historylimit
     <mappings/>
     <returns>
       <return>
-        <name>lastnewcharge</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>historylimit</name>
+        <name>lastmodifiedcharge</name>
         <type>String</type>
         <source_type>String</source_type>
       </return>
     </returns>
     <attributes/>
     <GUI>
-      <xloc>128</xloc>
-      <yloc>128</yloc>
+      <xloc>112</xloc>
+      <yloc>192</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>Modify (:Crmcharge) nodes</name>
+    <name>Modify (:Rangercharge) nodes</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -363,23 +116,23 @@ RETURN lastmodifiedcharge,historylimit
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $charges as row
-MATCH (c:Crmcharge {recid:row.RECID})
-OPTIONAL MATCH (e:Crmemployee {acctrecid:row.WORKERID})
+MATCH (c:Rangercharge {recid:row.RECID})
+OPTIONAL MATCH (e:Rangeremployee {acctrecid:row.WORKERID})
 OPTIONAL MATCH (t:Ticket {recid:row.TICKETID})
-OPTIONAL MATCH (i:Crmitem {recid:row.ITEMID})
-OPTIONAL MATCH (uu:Crmemployee {acctrecid:row.UPDATEUSER})
-OPTIONAL MATCH (cu:Crmemployee {acctrecid:row.CREATEUSER})
+OPTIONAL MATCH (i:Rangeritem {recid:row.ITEMID})
+OPTIONAL MATCH (uu:Rangeremployee {acctrecid:row.UPDATEUSER})
+OPTIONAL MATCH (cu:Rangeremployee {acctrecid:row.CREATEUSER})
 OPTIONAL MATCH (ct:Contact {acctrecid:row.CONTACTID})
-OPTIONAL MATCH (bc:Crmcontract {recid:row.BCRECID})
+OPTIONAL MATCH (bc:Rangercontract {recid:row.BCRECID})
 OPTIONAL MATCH (bk:Billkind {code:row.BILLKIND})
 OPTIONAL MATCH (bs:Billstage {code:row.STAGE})
-OPTIONAL MATCH (c)-[efr:ENTRY_FOR]->(oe:Crmemployee)
+OPTIONAL MATCH (c)-[efr:ENTRY_FOR]->(oe:Rangeremployee)
 OPTIONAL MATCH (c)-[potr:PART_OF_TICKET]->(ot:Ticket)
-OPTIONAL MATCH (c)-[iir:INCLUDES_ITEM]->(oi:Crmitem)
-OPTIONAL MATCH (c)-[lubr:LAST_UPDATED_BY]->(oue:Crmemployee)
-OPTIONAL MATCH (c)-[cbr:CREATED_BY]->(oce:Crmemployee)
+OPTIONAL MATCH (c)-[iir:INCLUDES_ITEM]->(oi:Rangeritem)
+OPTIONAL MATCH (c)-[lubr:LAST_UPDATED_BY]->(oue:Rangeremployee)
+OPTIONAL MATCH (c)-[cbr:CREATED_BY]->(oce:Rangeremployee)
 OPTIONAL MATCH (c)-[ccr:CLIENT_CONTACT]->(occ:Contact)
-OPTIONAL MATCH (c)-[ucr:UNDER_CONTRACT]->(oc:Crmcontract)
+OPTIONAL MATCH (c)-[ucr:UNDER_CONTRACT]->(oc:Rangercontract)
 OPTIONAL MATCH (c)-[ibr:IS_BILLABLE]->(obk:Billkind)
 OPTIONAL MATCH (c)-[bsr:BILLING_STAGE]->(obs:Billstage)
 FOREACH (ignoreMe in CASE WHEN (row.WORKERID &lt;&gt; oe.acctrecid) THEN [1] ELSE [] END | DELETE efr)
@@ -407,9 +160,12 @@ FOREACH (ignoreMe in CASE WHEN coalesce(c.quantity,"isNothing") &lt;&gt; coalesc
 FOREACH (ignoreMe in CASE WHEN coalesce(c.price,"isNothing") &lt;&gt; coalesce(row.PRICE,"isNothing") THEN [1] ELSE [] END | SET c.price=row.PRICE)
 FOREACH (ignoreMe in CASE WHEN coalesce(c.createdon,"isNothing") &lt;&gt; coalesce(row.CREATEDATE,"isNothing") THEN [1] ELSE [] END | SET c.createdon=datetime(row.CREATEDATE).epochmillis)
 FOREACH (ignoreMe in CASE WHEN coalesce(c.updatedon,"isNothing") &lt;&gt; coalesce(row.UPDATEDATE,"isNothing") THEN [1] ELSE [] END | SET c.updatedon=datetime(row.UPDATEDATE).epochmillis)
-RETURN row.SLIPDATE,c.recid,c.description,row.BCRECID,oc.recid,bc.recid ORDER BY c.date
+// SET date for last modified charge
+WITH datetime(row.UPDATEDATE).epochmillis as lastmodified
+MATCH (cdl:Rangerdataload {name:'RangerMSP'})
+FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedcharge or cdl.lastmodifiedcharge IS NULL THEN [1] ELSE [] END | SET cdl.lastmodifiedcharge=lastmodified)
 ;</cypher>
-    <batch_size>1000</batch_size>
+    <batch_size>250</batch_size>
     <read_only>N</read_only>
     <nr_retries_on_error/>
     <retry>Y</retry>
@@ -534,7 +290,7 @@ RETURN row.SLIPDATE,c.recid,c.description,row.BCRECID,oc.recid,bc.recid ORDER BY
     </GUI>
   </transform>
   <transform>
-    <name>Query Charges (slips) table</name>
+    <name>Query RangerMSP Mod Charges (slips) table</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -546,120 +302,14 @@ RETURN row.SLIPDATE,c.recid,c.description,row.BCRECID,oc.recid,bc.recid ORDER BY
     </partitioning>
     <connection>${RangerMSP-ds}</connection>
     <execute_each_row>N</execute_each_row>
-    <lookup>Get last :Crmcharge</lookup>
+    <lookup>Get last :Rangercharge</lookup>
     <limit>0</limit>
-    <sql>SELECT RECID,SLIPDATE,WORKERID,CARDID,TICKETID,ITEMID,CAST(DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,HOURSAMOUNT,QUANTITY,PRICE,TOTAL,STAGE,BILLKIND,CREATEDATE,UPDATEDATE,UPDATEUSER,CREATEUSER,USER1,CONTACTID,BCRECID,BCCODE from slips WHERE CREATEDATE > ? AND CREATEDATE > ? ORDER BY CREATEDATE</sql>
-    <variables_active>Y</variables_active>
-    <attributes/>
-    <GUI>
-      <xloc>368</xloc>
-      <yloc>80</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Query CommitCRM Mod Charges (slips) table</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${RangerMSP-ds}</connection>
-    <execute_each_row>N</execute_each_row>
-    <lookup>Get last :Crmcharge</lookup>
-    <limit>0</limit>
-    <sql>SELECT RECID,SLIPDATE,WORKERID,CARDID,TICKETID,ITEMID,CAST(DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,HOURSAMOUNT,QUANTITY,PRICE,TOTAL,STAGE,BILLKIND,CREATEDATE,UPDATEDATE,UPDATEUSER,CREATEUSER,USER1,CONTACTID,BCRECID,BCCODE from slips WHERE UPDATEDATE > ? AND CREATEDATE > ? ORDER BY UPDATEDATE</sql>
+    <sql>SELECT RECID,SLIPDATE,WORKERID,CARDID,TICKETID,ITEMID,CAST(DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,HOURSAMOUNT,QUANTITY,PRICE,TOTAL,STAGE,BILLKIND,CREATEDATE,UPDATEDATE,UPDATEUSER,CREATEUSER,USER1,CONTACTID,BCRECID,BCCODE from slips WHERE UPDATEDATE > ? ORDER BY UPDATEDATE</sql>
     <variables_active>Y</variables_active>
     <attributes/>
     <GUI>
       <xloc>368</xloc>
       <yloc>192</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Update Job/TFLogging</name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $taskparams as t
-WITH t,timestamp() as tfstart,trim(replace(t.jobname,'Parent Job Name',t.transname)) as jobname
-MATCH (l:N4jlogging {jobname:jobname})
-SET l.lasttfrun=tfstart,l.jobname=jobname,l.transname=t.transname,l.jobstatus='running',l.tdir=t.tdir,l.tfilename=t.tfilename,l.jdir=t.jdir,l.jfilename=t.jfilename
-RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobstart,l.jobname
-;</cypher>
-    <batch_size/>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>taskparams</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>jobname</parameter>
-        <field>jobname</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>transname</parameter>
-        <field>transname</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>tdir</parameter>
-        <field>tdir</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>jdir</parameter>
-        <field>jdir</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>jfilename</parameter>
-        <field>jfilename</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>tfilename</parameter>
-        <field>tfilename</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns>
-      <return>
-        <name>jobstart</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>l.jobname</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>l.transname</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-    </returns>
-    <attributes/>
-    <GUI>
-      <xloc>320</xloc>
-      <yloc>320</yloc>
     </GUI>
   </transform>
   <transform>
@@ -675,7 +325,7 @@ RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobs
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>MATCH (tc:Ticketcategory)-[:TICKET_CATEGORY]-(t:Ticket)-[tsr:TICKET_STATUS]-(ts:Ticketstatus) where ts.statcode&lt;800
-MATCH (t)-[:PART_OF_TICKET]-(cc:Crmcharge)
+MATCH (t)-[:PART_OF_TICKET]-(cc:Rangercharge)
 WITH t,max(cc.createdon) as maxcharge
 WITH t,apoc.date.format(maxcharge,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as lastcharge
 SET t.lastcharge=lastcharge
@@ -694,8 +344,8 @@ RETURN t.ticketnumber,lastcharge</cypher>
     <returns/>
     <attributes/>
     <GUI>
-      <xloc>528</xloc>
-      <yloc>320</yloc>
+      <xloc>480</xloc>
+      <yloc>304</yloc>
     </GUI>
   </transform>
   <transform_error_handling>

@@ -115,7 +115,7 @@
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (cmkh:Cmkhost)-[:HAS_SERVICE]-(cmks:Cmkservice)-[:HAS_TICKET]-(t:Ticket)-[tsr:TICKET_STATUS]-(ts:Ticketstatus) where not((cmks)-[:IN_STATE]-(:Servicestate)) and (t)-[:PART_OF_TICKET]-(:Crmcharge) and ts.statcode&lt;900
+    <cypher>MATCH (cmkh:Cmkhost)-[:HAS_SERVICE]-(cmks:Cmkservice)-[:HAS_TICKET]-(t:Ticket)-[tsr:TICKET_STATUS]-(ts:Ticketstatus) where not((cmks)-[:IN_STATE]-(:Servicestate)) and (t)-[:PART_OF_TICKET]-(:Rangercharge) and ts.statcode&lt;900
 WITH * WHERE not ((cmks)-[:PROBLEM_ACKNOWLEDGEMENT]-(:Problemack {name:'Unacknowledged'})) and ((cmks.servicestateage contains 'm' and toInteger(split(cmks.servicestateage,' ')[0]) > 10) or not (cmks.servicestateage contains 's' or  cmks.servicestateage contains 'm'))
 return t.recid as ticketid
 ;</cypher>
@@ -163,7 +163,7 @@ return t.recid as ticketid
         <field>RECID</field>
         <name>closetrecid</name>
       </key>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <value>
         <name>USER3</name>
@@ -210,7 +210,7 @@ return t.recid as ticketid
         <field>RECID</field>
         <name>closetrecid</name>
       </key>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <value>
         <name>USER3</name>
@@ -257,7 +257,7 @@ return t.recid as ticketid
         <field>RECID</field>
         <name>closetrecid</name>
       </key>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <value>
         <name>USER3</name>
@@ -304,7 +304,7 @@ return t.recid as ticketid
         <field>RECID</field>
         <name>closetrecid</name>
       </key>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <value>
         <name>USER3</name>
@@ -351,7 +351,7 @@ return t.recid as ticketid
         <field>RECID</field>
         <name>closetrecid</name>
       </key>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <value>
         <name>USER3</name>
@@ -588,7 +588,7 @@ RETURN t.recid as closetrecid,t.host as closehost,t.service as closeservice,t.au
     <connection>${graphdb-ds}</connection>
     <cypher>MATCH (tq:Ticketqueue {service:'NinjaRMM Patching'})-[:QUEUE_FOR_TICKET]-(t:Ticket {source:'BlueGraph Automation'})-[tsr:TICKET_STATUS]-(ts:Ticketstatus) 
 where ts.statcode&lt;900 and ((t.automation = 'Review and Autoclose' and t.manager &lt;&gt; 'Check_MK') or (t.automation = 'Review and Autoclose(AQ)' and t.manager = 'Check_MK') )
-MATCH (ca:Crmasset {recid:tq.asset})-[]-(r:Rmmdevice)
+MATCH (ca:Rangerasset {recid:tq.asset})-[]-(r:Rmmdevice)
 OPTIONAL MATCH (r)-[pr:FAILED_PATCH_STATUS]-(:Rmmpatch)
 WITH * WHERE pr.status IS NULL and (r)-[:INSTALLED_PATCH_STATUS]-(:Rmmpatch)
 WITH *,apoc.date.format(timestamp(),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') as closedate
@@ -1270,7 +1270,7 @@ set tq.status='linked'
         <field>RECID</field>
         <name>updatetrecid</name>
       </key>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <value>
         <name>STATUS</name>
@@ -1309,7 +1309,7 @@ set tq.status='linked'
         <field>RECID</field>
         <name>updatetrecid</name>
       </key>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <value>
         <name>STATUS</name>
@@ -1464,7 +1464,7 @@ RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobs
         <field>RECID</field>
         <name>trecid</name>
       </key>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <value>
         <name>USER3</name>

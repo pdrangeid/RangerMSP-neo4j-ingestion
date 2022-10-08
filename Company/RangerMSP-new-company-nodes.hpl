@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pipeline>
   <info>
-    <name>RangerMSP-update-company-nodes</name>
+    <name>RangerMSP-new-company-nodes</name>
     <name_sync_with_filename>Y</name_sync_with_filename>
     <description/>
     <extended_description/>
@@ -24,18 +24,18 @@
   </notepads>
   <order>
     <hop>
-      <from>Query RangerMSP modified Company (cards) table</from>
-      <to>Edit (:Company) nodes for modified companies</to>
+      <from>Query new RangerMSP Company (cards) table</from>
+      <to>Create (:Company) labels for new companies</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
       <from>Get last :Company</from>
-      <to>Query RangerMSP modified Company (cards) table</to>
+      <to>Query new RangerMSP Company (cards) table</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <transform>
-    <name>Edit (:Company) nodes for modified companies</name>
+    <name>Create (:Company) labels for new companies</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -47,33 +47,20 @@
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $companies as row
-MATCH (a:Company {acctrecid:row.recid})
+MATCH (r:Recordstatus{state:row.accountstatus})
 OPTIONAL MATCH (dc1:Rangercontract {recid:row.bcrecid})
-OPTIONAL MATCH (x:Bluenetexpress {name:'Blue Net Express'})
-OPTIONAL MATCH (m:Rangeremployee {acctrecid:row.assigncardid})
-OPTIONAL MATCH (dc:Rangercontract {recid:coalesce(row.bcrecid,'None Provided')})
-OPTIONAL MATCH (r:Recordstatus {state:row.accountstatus})
-OPTIONAL MATCH (a)-[asr:ACCOUNT_STATE]-(ors:Recordstatus)
-OPTIONAL MATCH (a)-[dcr:USES_DEFAULT_CONTRACT]-(odc:Rangercontract)
-OPTIONAL MATCH (a)-[sbr:SERVICED_BY]->(x)
-OPTIONAL MATCH (a)-[amr:ACCOUNT_MANAGER]->(oam)
-FOREACH (ignoreMe in CASE WHEN (row.accountstatus &lt;&gt; ors.state) THEN [1] ELSE [] END | DELETE asr)
-FOREACH (ignoreMe in CASE WHEN (row.bcrecid &lt;&gt; odc.recid) THEN [1] ELSE [] END | DELETE dcr)
-FOREACH (ignoreMe in CASE WHEN (row.assigncardid &lt;&gt; oam.acctrecid) THEN [1] ELSE [] END | DELETE amr)
-FOREACH (ignoreMe in CASE WHEN not (toLower(row.cardid3) contains 'express') THEN [1] ELSE [] END | DELETE sbr)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.city,'isnull') &lt;&gt; coalesce(a.city,'isnull') THEN [1] ELSE [] END | SET a.city=row.city)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.company,'isnull') &lt;&gt; coalesce(a.name,'isnull') THEN [1] ELSE [] END | SET a.name=row.company)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.createdate,'isnull') &lt;&gt; coalesce(a.createdon,'isnull') THEN [1] ELSE [] END | SET a.createdon=datetime(row.createdate).epochmillis)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.updatedate,'isnull') &lt;&gt; coalesce(a.updatedon,'isnull') THEN [1] ELSE [] END | SET a.updatedon=datetime(row.updatedate).epochmillis)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.bcrecid,'isnull') &lt;&gt; coalesce(a.defaultcontract,'isnull') THEN [1] ELSE [] END | SET a.defaultcontract=row.bcrecid)
-FOREACH (ignoreMe in CASE WHEN dc.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (a)-[:USES_DEFAULT_CONTRACT]->(dc))
-FOREACH (ignoreMe in CASE WHEN (toLower(row.cardid3) contains 'express') AND x.name IS NOT NULL THEN [1] ELSE [] END | MERGE (a)-[:SERVICED_BY]-&gt;(x))
-FOREACH (ignoreMe in CASE WHEN m.name IS NOT NULL THEN [1] ELSE [] END | MERGE (a)-[:ACCOUNT_MANAGER]->(m))
+OPTIONAL MATCH (dc:Rangercontract {acctrecid:coalesce(row.bcrecid,'None Provided')})
+OPTIONAL MATCH (m:Rangeremployee {recid:row.assigncardid})
+MERGE (a:Company {acctrecid:row.recid})
+ON CREATE
+set a.city=row.city,a.name=row.company,a.createdon=datetime(row.createdate).epochmillis,a.updatedon=datetime(row.updatedate).epochmillis,a.defaultcontract=row.bcrecid
 MERGE (a)-[:ACCOUNT_STATE]->(r)
-// SET date for last modified company
-WITH datetime(row.updatedate).epochmillis as lastmodified
+FOREACH (ignoreMe in CASE WHEN m.name IS NOT NULL THEN [1] ELSE [] END | MERGE (a)-[:ACCOUNT_MANAGER]->(m))
+FOREACH (ignoreMe in CASE WHEN dc.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (a)-[:USES_DEFAULT_CONTRACT]->(dc))
+// SET date for last new ticket
+WITH datetime(row.updatedate).epochmillis as lastnew
 MATCH (cdl:Rangerdataload {name:'RangerMSP'})
-FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedcompany or cdl.lastmodifiedcompany IS NULL THEN [1] ELSE [] END | SET cdl.lastmodifiedcompany=lastmodified)
+FOREACH (ignoreMe in CASE WHEN lastnew > cdl.lastnewcompany or cdl.lastnewcompany IS NULL THEN [1] ELSE [] END | SET cdl.lastnewcompany=lastnew)
 ;
 </cypher>
     <batch_size>500</batch_size>
@@ -140,14 +127,19 @@ FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedcompany or cdl.las
     </mappings>
     <returns>
       <return>
-        <name>a.name</name>
+        <name>company</name>
         <type>String</type>
-        <source_type>String</source_type>
+        <source_type/>
+      </return>
+      <return>
+        <name>recid</name>
+        <type>String</type>
+        <source_type/>
       </return>
     </returns>
     <attributes/>
     <GUI>
-      <xloc>784</xloc>
+      <xloc>848</xloc>
       <yloc>272</yloc>
     </GUI>
   </transform>
@@ -164,10 +156,10 @@ FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedcompany or cdl.las
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
-WITH max(coalesce(cdl.lastmodifiedcompany,0)) as lastmodifiedcompany
-WITH apoc.date.format(lastmodifiedcompany,'ms','yyyy-MM-dd HH:mm:ss.sss') AS lastmodifiedcompany
-//RETURN '1990-08-14 14:34:40.040' as lastmodifiedcompany
-RETURN lastmodifiedcompany
+WITH coalesce(cdl.lastnewcompany,0) as lastnewcompany,cdl
+WITH apoc.date.format(lastnewcompany,'ms','yyyy-MM-dd HH:mm:ss.sss') AS lastnewcompany
+//RETURN '1990-08-14 14:34:40.040' as lastnewcompany
+RETURN lastnewcompany
 ;</cypher>
     <batch_size/>
     <read_only>Y</read_only>
@@ -176,25 +168,25 @@ RETURN lastmodifiedcompany
     <cypher_from_field>N</cypher_from_field>
     <cypher_field/>
     <unwind>N</unwind>
-    <unwind_map/>
+    <unwind_map>days</unwind_map>
     <returning_graph>N</returning_graph>
     <return_graph_field/>
     <mappings/>
     <returns>
       <return>
-        <name>lastmodifiedcompany</name>
+        <name>lastnewcompany</name>
         <type>String</type>
         <source_type>String</source_type>
       </return>
     </returns>
     <attributes/>
     <GUI>
-      <xloc>192</xloc>
+      <xloc>288</xloc>
       <yloc>272</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>Query RangerMSP modified Company (cards) table</name>
+    <name>Query new RangerMSP Company (cards) table</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -208,11 +200,11 @@ RETURN lastmodifiedcompany
     <execute_each_row>N</execute_each_row>
     <lookup>Get last :Company</lookup>
     <limit>0</limit>
-    <sql>SELECT recid,accountstatus,bcrecid,city,kind,cardid3,company,createdate,updatedate,assigncardid from cards WHERE company is NOT NULL AND kind is NOT NULL AND entitykind=1 AND UPDATEDATE > ? ORDER BY updatedate ASC</sql>
+    <sql>${newcompanyrangerquery}</sql>
     <variables_active>Y</variables_active>
     <attributes/>
     <GUI>
-      <xloc>464</xloc>
+      <xloc>528</xloc>
       <yloc>272</yloc>
     </GUI>
   </transform>

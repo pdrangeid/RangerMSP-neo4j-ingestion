@@ -25,7 +25,7 @@
   <order>
     <hop>
       <from>Block this step until steps finish</from>
-      <to>Update (:Clientdomain)-[:DOMAIN_OF]->(:Company)  (:Crmasset)</to>
+      <to>Update (:Clientdomain)-[:DOMAIN_OF]->(:Company)  (:Rangerasset)</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -149,7 +149,7 @@
     </GUI>
   </transform>
   <transform>
-    <name>Update (:Clientdomain)-[:DOMAIN_OF]->(:Company)  (:Crmasset)</name>
+    <name>Update (:Clientdomain)-[:DOMAIN_OF]->(:Company)  (:Rangerasset)</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -160,9 +160,9 @@
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>// Creating (:Clientdomain)-[:DOMAIN_OF]-(:Company) relationships for accounts that exclusively use the domain from ():Crmasset).
+    <cypher>// Creating (:Clientdomain)-[:DOMAIN_OF]-(:Company) relationships for accounts that exclusively use the domain from ():Rangerasset).
 WITH "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\\-]*[a-zA-Z0-9])\\.){2,}([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\\-]*[A-Za-z0-9]){2,}$" as domainregex,"^[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}.[\\d]{1,3}$" as ipregex
-MATCH (ca:Crmasset)-[:ASSET_STATE]-(rs:Recordstatus {state:'A'}) where ca.name contains '.' and not ca.name =~ipregex and ca.name =~ domainregex
+MATCH (ca:Rangerasset)-[:ASSET_STATE]-(rs:Recordstatus {state:'A'}) where ca.name contains '.' and not ca.name =~ipregex and ca.name =~ domainregex
 MATCH (ca)-[:ASSET_TYPE]-(at:Assettype) where tolower(at.name) contains 'server'
 MATCH (a:Company)-[:ASSET_OF]-(ca)
 WITH a,collect(distinct replace(ca.name,split(ca.name,".")[0]+'.','')) as assetdomains

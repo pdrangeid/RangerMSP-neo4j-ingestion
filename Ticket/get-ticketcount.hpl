@@ -45,7 +45,7 @@
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
+    <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
 MATCH (t:Ticket)
 WITH cdl,count(t) as totaltickets
 WITH cdl,totaltickets WHERE cdl.ticketcount&lt;totaltickets

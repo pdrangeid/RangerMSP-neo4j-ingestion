@@ -64,11 +64,11 @@
       <type>NEO4J_CYPHER_SCRIPT</type>
       <attributes/>
       <connection>${graphdb-ds}</connection>
-      <script>MATCH (:Crmcontracttype)-[r]-(c:Crmcontract)-[]-(:Crmcontractstatus {value:'A'})
+      <script>MATCH (:Rangercontracttype)-[r]-(c:Rangercontract)-[]-(:Rangercontractstatus {value:'A'})
 WITH c,COUNT(r) as rel_cnt
 WITH c WHERE rel_cnt>1
-MATCH (c)-[r]-(ct:Crmcontracttype) WHERE ct.default IS NULL
-WITH DISTINCT c,r,ct WHERE (c)-[]-(:Crmcontracttype {default:true})
+MATCH (c)-[r]-(ct:Rangercontracttype) WHERE ct.default IS NULL
+WITH DISTINCT c,r,ct WHERE (c)-[]-(:Rangercontracttype {default:true})
 DELETE r
 ;</script>
       <replace_variables>N</replace_variables>
@@ -78,363 +78,344 @@ DELETE r
       <attributes_hac/>
     </action>
     <action>
-      <name>CREATE RELATIONSHIP (:Crmcontract)-[:SERVICED_BY]-(:Bluenetexpress)</name>
+      <name>Assign (:Rangercontract) to (:Rangercontractcat) based on name and codes</name>
       <description/>
       <type>NEO4J_CYPHER_SCRIPT</type>
       <attributes/>
       <connection>${graphdb-ds}</connection>
-      <script>MATCH (c:Crmcontract)
-MATCH (x:Bluenetexpress {name:'Blue Net Express'})
-OPTIONAL MATCH (c)-[:PROJECT_STATUS]-(ps:Crmprojectstatus)
-WITH * WHERE tolower(ps.name) contains 'express' or tolower(c.name) contains 'express' or tolower(c.name) contains 'expr-' or tolower(c.code) contains 'express' or
-tolower(c.code) contains 'expr-'
-MERGE (c)-[:SERVICED_BY]-(x)
-;</script>
+      <script>MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and toLower(c.name) contains 'account management' or toLower(c.descexternal) contains 'internal account management'
+MERGE (cc:Rangercontractcat {name:'Account Management'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.name) contains 'managed backup' or toLower(c.code) starts with 'rmbr-' )
+MERGE (cc:Rangercontractcat {name:'Backup Plan'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'onboard') 
+MERGE (cc:Rangercontractcat {name:'Onboarding'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.name) contains 'cc-av' or toLower(c.name) contains 'cc-backup') 
+MERGE (cc:Rangercontractcat {name:'CloudCare'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'device plan' or toLower(c.name) contains 'managed wifi' or toLower(c.name) contains 'blue plan'
+ or toLower(c.name) contains 'managed server'  or toLower(c.name) contains 'managed server' or toLower(c.code) starts with 'rmav-') 
+MERGE (cc:Rangercontractcat {name:'Device Plan'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.code) starts with 'rbmd-' or toLower(c.code) starts with 'rsmd-' or toLower(c.code) starts with 'rgmd-' or toLower(c.code) starts with 'rbi') 
+MERGE (cc:Rangercontractcat {name:'Device Plan'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where  (toLower(c.name) contains 'haas ' or toLower(c.code) contains '-haas' or toLower(c.code) starts with 'rhas-') 
+MERGE (cc:Rangercontractcat {name:'HaaS Plan'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.name) contains 'cloud email') 
+MERGE (cc:Rangercontractcat {name:'Hosted Exchange'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.code) starts with 'abni.') 
+MERGE (cc:Rangercontractcat {name:'Internal Operations'}) 
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'csp azure') 
+MERGE (cc:Rangercontractcat {name:'Microsoft Azure'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (ci:Rangeritem)-[]-(:Rangercharge)-[]-(c:Rangercontract)-[]-(:Rangercontractstatus {value:'A'}) WHERE toLower(ci.description) contains 'azure'
+MATCH (cc:Rangercontractcat {name:'Microsoft Azure'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'microsoft csp' or toLower(c.name) contains 'o365 csp' or toLower(c.code) starts with 'rcsp') 
+MERGE (cc:Rangercontractcat {name:'Microsoft CSP'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where toLower(c.code) starts with 'tnbp'
+MERGE (cc:Rangercontractcat {name:'Feature Enablement'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where toLower(c.code) starts with 'rahs'
+MERGE (cc:Rangercontractcat {name:'After-Hours Support'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where  (toLower(c.code) starts with 'rspl-')
+MERGE (cc:Rangercontractcat {name:'Microsoft SPLA'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) //where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)
+WHERE (toLower(c.descexternal) contains 'blueassure' and toLower(c.descexternal) contains 'infrastructure' and toLower(c.descexternal) contains 'plan') or 
+toLower(c.code) starts with 'rbi'
+MERGE (cc:Rangercontractcat {name:'Device Plan'})  SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'plan on network') 
+MERGE (cc:Rangercontractcat {name:'Network Plan'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'blueassure' and toLower(c.name) contains 'network infrastructure' ) 
+MERGE (cc:Rangercontractcat {name:'Network Plan'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'out of scope')  or toLower(c.code) starts with 'twm-'
+MERGE (cc:Rangercontractcat {name:'Out of Scope'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'cloud plan' or toLower(c.name) contains 'cloud desktop' or toLower(c.name) contains 'cloud hybrid' or
+ toLower(c.name) contains 'colo hosting' or toLower(c.name) contains 'hosting plan' or toLower(c.code) starts with 'rcls-' or toLower(c.code) starts with 'rpcs-' or toLower(c.code) starts with 'rhsm') 
+MERGE (cc:Rangercontractcat {name:'Private Cloud'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (n:Rangeritem) where toLower(n.name) contains 'cloud desktop' or toLower(n.description) contains 'cloud desktop'
+MATCH (n)-[:INCLUDES_ITEM]-(cc:Rangercharge)-[:UNDER_CONTRACT]-(c:Rangercontract)-[:CONTRACT_STATUS]-(cs:Rangercontractstatus {value:'A'})
+WITH c
+MATCH (cc:Rangercontractcat {name:'Private Cloud'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'managed security' or toLower(c.name) contains 'managed firewall')
+MERGE (cc:Rangercontractcat {name:'Security Plan'}) SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)) and (toLower(c.name) contains 'statement of work' or toLower(c.name) contains 'sharepoint dev'  or 
+toLower(c.name) contains 'deployment' or toLower(c.name) contains 'software dev' or toLower(c.name) contains 'sharepoint support' or toLower(c.name) contains 'flat bid' or toLower(c.name) contains 'consulting' or 
+toLower(c.name) contains 'upgrade' or toLower(c.name) contains 'migration' or toLower(c.name) contains 'block of money' or toLower(c.name) contains 'block of time' or
+toLower(c.name) contains 'project' or toLower(c.name) contains 'config' or toLower(c.name) contains 'install' or toLower(c.name) contains 'adhoc' or toLower(c.code) starts with 'mdev' or toLower(c.code) starts with 'mprj') 
+MERGE (cc:Rangercontractcat {name:'Statement of Work'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)) and ( toLower(c.descexternal) contains 'billed for actual time' or toLower(c.descexternal) contains 'non-contract' or 
+ toLower(c.descexternal) contains 'setup and install' or toLower(c.descexternal) contains 'setup labor' or toLower(c.descexternal) contains 'performance issues')
+MERGE (cc:Rangercontractcat {name:'Statement of Work'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)) and ( toLower(c.code) starts with 'sow-' or toLower(c.code) starts with 'bot-' or toLower(c.code) starts with 'tdev-'
+ or toLower(c.code) starts with 'tprj-' or toLower(c.code) starts with 't-' or toLower(c.code) starts with 'mprj-') 
+MERGE (cc:Rangercontractcat {name:'Statement of Work'})
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'knowbe4'  ) 
+MERGE (cc:Rangercontractcat {name:'User Awareness Plan'})  SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) //where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)
+WHERE (toLower(c.name) contains 'user plan' or toLower(c.name) contains 'managed user' or (toLower(c.name) contains 'blueassure' and toLower(c.name) contains 'user') or 
+toLower(c.code) starts with 'rbpu'  or toLower(c.code) starts with 'rbeu'  or toLower(c.code) starts with 'rbau') 
+MERGE (cc:Rangercontractcat {name:'User Plan'})  SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.code) starts with 'rbmu-' or toLower(c.code) starts with 'rsmu-' or toLower(c.code) starts with 'rgmu-') 
+MERGE (cc:Rangercontractcat {name:'Device Plan'})  SET cc.mrr=true
+MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
+;
+
+// REMOVE accidental (double) categories
+MATCH (c:Rangercontract)-[]-(cc:Rangercontractcat) WHERE cc.mrr IS NULL or cc.mrr=false
+MATCH (c)-[r]-(cc2:Rangercontractcat {mrr:true})
+DELETE r;
+</script>
       <replace_variables>N</replace_variables>
       <parallel>N</parallel>
-      <xloc>832</xloc>
+      <xloc>896</xloc>
       <yloc>48</yloc>
       <attributes_hac/>
     </action>
     <action>
-      <name>Assign (:Crmcontract) to (:Crmcontractcat) based on name and codes</name>
+      <name>Assign (:Rangercontract) to (:Rangercontractcat) based on name and codes (2)</name>
       <description/>
       <type>NEO4J_CYPHER_SCRIPT</type>
       <attributes/>
       <connection>${graphdb-ds}</connection>
-      <script>MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and toLower(c.name) contains 'account management' or toLower(c.descexternal) contains 'internal account management'
-MERGE (cc:Crmcontractcat {name:'Account Management'})
+      <script>MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and toLower(c.name) contains 'account management' or toLower(c.descexternal) contains 'internal account management' or toLower(c.code) starts with 'a' 
+MERGE (cc:Rangercontractcat {name:'Account Management'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.name) contains 'managed backup' or toLower(c.code) starts with 'rmbr-' )
-MERGE (cc:Crmcontractcat {name:'Backup Plan'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.name) contains 'managed backup' or toLower(c.code) starts with 'rmbr-' )
+MERGE (cc:Rangercontractcat {name:'Backup Plan'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'onboard') 
-MERGE (cc:Crmcontractcat {name:'Onboarding'})
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'onboard') 
+MERGE (cc:Rangercontractcat {name:'Onboarding'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.name) contains 'cc-av' or toLower(c.name) contains 'cc-backup') 
-MERGE (cc:Crmcontractcat {name:'CloudCare'})
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.name) contains 'cc-av' or toLower(c.name) contains 'cc-backup') 
+MERGE (cc:Rangercontractcat {name:'CloudCare'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'device plan' or toLower(c.name) contains 'managed wifi' or toLower(c.name) contains 'blue plan'
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'device plan' or toLower(c.name) contains 'managed wifi' or toLower(c.name) contains 'blue plan'
  or toLower(c.name) contains 'managed server'  or toLower(c.name) contains 'managed server' or toLower(c.code) starts with 'rmav-') 
-MERGE (cc:Crmcontractcat {name:'Device Plan'}) SET cc.mrr=true
+MERGE (cc:Rangercontractcat {name:'Device Plan'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.code) starts with 'rbmd-' or toLower(c.code) starts with 'rsmd-' or toLower(c.code) starts with 'rgmd-' or toLower(c.code) starts with 'rbi') 
-MERGE (cc:Crmcontractcat {name:'Device Plan'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.code) starts with 'rbmd-' or toLower(c.code) starts with 'rsmd-' or toLower(c.code) starts with 'rgmd-' or toLower(c.code) starts with 'rbi') 
+MERGE (cc:Rangercontractcat {name:'Device Plan'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where  (toLower(c.name) contains 'haas ' or toLower(c.code) contains '-haas' or toLower(c.code) starts with 'rhas-') 
-MERGE (cc:Crmcontractcat {name:'HaaS Plan'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where  (toLower(c.name) contains 'haas ' or toLower(c.code) contains '-haas' or toLower(c.code) starts with 'rhas-') 
+MERGE (cc:Rangercontractcat {name:'HaaS Plan'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.name) contains 'cloud email') 
-MERGE (cc:Crmcontractcat {name:'Hosted Exchange'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.name) contains 'cloud email') 
+MERGE (cc:Rangercontractcat {name:'Hosted Exchange'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.code) starts with 'abni.') 
-MERGE (cc:Crmcontractcat {name:'Internal Operations'}) 
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.code) starts with 'abni.') 
+MERGE (cc:Rangercontractcat {name:'Internal Operations'}) 
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'csp azure') 
-MERGE (cc:Crmcontractcat {name:'Microsoft Azure'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'csp azure') 
+MERGE (cc:Rangercontractcat {name:'Microsoft Azure'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (ci:Crmitem)-[]-(:Crmcharge)-[]-(c:Crmcontract)-[]-(:Crmcontractstatus {value:'A'}) WHERE toLower(ci.description) contains 'azure'
-MATCH (cc:Crmcontractcat {name:'Microsoft Azure'})
+MATCH (ci:Rangeritem)-[]-(:Rangercharge)-[]-(c:Rangercontract)-[]-(:Rangercontractstatus {value:'A'}) WHERE toLower(ci.description) contains 'azure'
+MATCH (cc:Rangercontractcat {name:'Microsoft Azure'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'microsoft csp' or toLower(c.name) contains 'o365 csp' or toLower(c.code) starts with 'rcsp') 
-MERGE (cc:Crmcontractcat {name:'Microsoft CSP'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'microsoft csp' or toLower(c.name) contains 'o365 csp' or toLower(c.code) starts with 'rcsp') 
+MERGE (cc:Rangercontractcat {name:'Microsoft CSP'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where toLower(c.code) starts with 'tnbp'
-MERGE (cc:Crmcontractcat {name:'Feature Enablement'})
+MATCH (c:Rangercontract) where toLower(c.code) starts with 'tnbp'
+MERGE (cc:Rangercontractcat {name:'Feature Enablement'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where toLower(c.code) starts with 'rahs'
-MERGE (cc:Crmcontractcat {name:'After-Hours Support'})
+MATCH (c:Rangercontract) where toLower(c.code) starts with 'rahs'
+MERGE (cc:Rangercontractcat {name:'After-Hours Support'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where  (toLower(c.code) starts with 'rspl-')
-MERGE (cc:Crmcontractcat {name:'Microsoft SPLA'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where  (toLower(c.code) starts with 'rspl-')
+MERGE (cc:Rangercontractcat {name:'Microsoft SPLA'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) //where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)
+MATCH (c:Rangercontract) //where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)
 WHERE (toLower(c.descexternal) contains 'blueassure' and toLower(c.descexternal) contains 'infrastructure' and toLower(c.descexternal) contains 'plan') or 
 toLower(c.code) starts with 'rbi'
-MERGE (cc:Crmcontractcat {name:'Device Plan'})  SET cc.mrr=true
+MERGE (cc:Rangercontractcat {name:'Device Plan'})  SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'plan on network') 
-MERGE (cc:Crmcontractcat {name:'Network Plan'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'plan on network') 
+MERGE (cc:Rangercontractcat {name:'Network Plan'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'blueassure' and toLower(c.name) contains 'network infrastructure' ) 
-MERGE (cc:Crmcontractcat {name:'Network Plan'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'blueassure' and toLower(c.name) contains 'network infrastructure' ) 
+MERGE (cc:Rangercontractcat {name:'Network Plan'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'out of scope')  or toLower(c.code) starts with 'twm-'
-MERGE (cc:Crmcontractcat {name:'Out of Scope'})
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'out of scope')  or toLower(c.code) starts with 'twm-' or toLower(c.code) starts with 'o'
+MERGE (cc:Rangercontractcat {name:'Out of Scope'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'cloud plan' or toLower(c.name) contains 'cloud desktop' or toLower(c.name) contains 'cloud hybrid' or
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'cloud plan' or toLower(c.name) contains 'cloud desktop' or toLower(c.name) contains 'cloud hybrid' or
  toLower(c.name) contains 'colo hosting' or toLower(c.name) contains 'hosting plan' or toLower(c.code) starts with 'rcls-' or toLower(c.code) starts with 'rpcs-' or toLower(c.code) starts with 'rhsm') 
-MERGE (cc:Crmcontractcat {name:'Private Cloud'}) SET cc.mrr=true
+MERGE (cc:Rangercontractcat {name:'Private Cloud'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (n:Crmitem) where toLower(n.name) contains 'cloud desktop' or toLower(n.description) contains 'cloud desktop'
-MATCH (n)-[:INCLUDES_ITEM]-(cc:Crmcharge)-[:UNDER_CONTRACT]-(c:Crmcontract)-[:CONTRACT_STATUS]-(cs:Crmcontractstatus {value:'A'})
+MATCH (n:Rangeritem) where toLower(n.name) contains 'cloud desktop' or toLower(n.description) contains 'cloud desktop'
+MATCH (n)-[:INCLUDES_ITEM]-(cc:Rangercharge)-[:UNDER_CONTRACT]-(c:Rangercontract)-[:CONTRACT_STATUS]-(cs:Rangercontractstatus {value:'A'})
 WITH c
-MATCH (cc:Crmcontractcat {name:'Private Cloud'}) SET cc.mrr=true
+MATCH (cc:Rangercontractcat {name:'Private Cloud'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'managed security' or toLower(c.name) contains 'managed firewall')
-MERGE (cc:Crmcontractcat {name:'Security Plan'}) SET cc.mrr=true
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'managed security' or toLower(c.name) contains 'managed firewall')
+MERGE (cc:Rangercontractcat {name:'Security Plan'}) SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)) and (toLower(c.name) contains 'statement of work' or toLower(c.name) contains 'sharepoint dev'  or 
+MATCH (c:Rangercontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)) and (toLower(c.name) contains 'statement of work' or toLower(c.name) contains 'sharepoint dev'  or 
 toLower(c.name) contains 'deployment' or toLower(c.name) contains 'software dev' or toLower(c.name) contains 'sharepoint support' or toLower(c.name) contains 'flat bid' or toLower(c.name) contains 'consulting' or 
 toLower(c.name) contains 'upgrade' or toLower(c.name) contains 'migration' or toLower(c.name) contains 'block of money' or toLower(c.name) contains 'block of time' or
 toLower(c.name) contains 'project' or toLower(c.name) contains 'config' or toLower(c.name) contains 'install' or toLower(c.name) contains 'adhoc' or toLower(c.code) starts with 'mdev' or toLower(c.code) starts with 'mprj') 
-MERGE (cc:Crmcontractcat {name:'Statement of Work'})
+MERGE (cc:Rangercontractcat {name:'Statement of Work'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)) and ( toLower(c.descexternal) contains 'billed for actual time' or toLower(c.descexternal) contains 'non-contract' or 
+MATCH (c:Rangercontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)) and ( toLower(c.descexternal) contains 'billed for actual time' or toLower(c.descexternal) contains 'non-contract' or 
  toLower(c.descexternal) contains 'setup and install' or toLower(c.descexternal) contains 'setup labor' or toLower(c.descexternal) contains 'performance issues')
-MERGE (cc:Crmcontractcat {name:'Statement of Work'})
+MERGE (cc:Rangercontractcat {name:'Statement of Work'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)) and ( toLower(c.code) starts with 'sow-' or toLower(c.code) starts with 'bot-' or toLower(c.code) starts with 'tdev-'
+MATCH (c:Rangercontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)) and ( toLower(c.code) starts with 'sow-' or toLower(c.code) starts with 'bot-' or toLower(c.code) starts with 'tdev-'
  or toLower(c.code) starts with 'tprj-' or toLower(c.code) starts with 't-' or toLower(c.code) starts with 'mprj-') 
-MERGE (cc:Crmcontractcat {name:'Statement of Work'})
+MERGE (cc:Rangercontractcat {name:'Statement of Work'})
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'knowbe4'  ) 
-MERGE (cc:Crmcontractcat {name:'User Awareness Plan'})  SET cc.mrr=true
+MATCH (c:Rangercontract) where (toLower(c.name) contains 'knowbe4'  ) 
+MERGE (cc:Rangercontractcat {name:'User Awareness Plan'})  SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) //where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)
+MATCH (c:Rangercontract) //where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat)
 WHERE (toLower(c.name) contains 'user plan' or toLower(c.name) contains 'managed user' or (toLower(c.name) contains 'blueassure' and toLower(c.name) contains 'user') or 
 toLower(c.code) starts with 'rbpu'  or toLower(c.code) starts with 'rbeu'  or toLower(c.code) starts with 'rbau') 
-MERGE (cc:Crmcontractcat {name:'User Plan'})  SET cc.mrr=true
+MERGE (cc:Rangercontractcat {name:'User Plan'})  SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.code) starts with 'rbmu-' or toLower(c.code) starts with 'rsmu-' or toLower(c.code) starts with 'rgmu-') 
-MERGE (cc:Crmcontractcat {name:'Device Plan'})  SET cc.mrr=true
+MATCH (c:Rangercontract) where not (c)-[:CONTRACT_CATEGORY]-(:Rangercontractcat) and (toLower(c.code) starts with 'rbmu-' or toLower(c.code) starts with 'rsmu-' or toLower(c.code) starts with 'rgmu-') 
+MERGE (cc:Rangercontractcat {name:'Device Plan'})  SET cc.mrr=true
 MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
 ;
 
 // REMOVE accidental (double) categories
-MATCH (c:Crmcontract)-[]-(cc:Crmcontractcat) WHERE cc.mrr IS NULL or cc.mrr=false
-MATCH (c)-[r]-(cc2:Crmcontractcat {mrr:true})
+MATCH (c:Rangercontract)-[]-(cc:Rangercontractcat) WHERE cc.mrr IS NULL or cc.mrr=false
+MATCH (c)-[r]-(cc2:Rangercontractcat {mrr:true})
 DELETE r;
 </script>
       <replace_variables>N</replace_variables>
       <parallel>N</parallel>
-      <xloc>832</xloc>
-      <yloc>176</yloc>
-      <attributes_hac/>
-    </action>
-    <action>
-      <name>Assign (:Crmcontract) to (:Crmcontractcat) based on name and codes (2)</name>
-      <description/>
-      <type>NEO4J_CYPHER_SCRIPT</type>
-      <attributes/>
-      <connection>${graphdb-ds}</connection>
-      <script>MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and toLower(c.name) contains 'account management' or toLower(c.descexternal) contains 'internal account management' or toLower(c.code) starts with 'a' 
-MERGE (cc:Crmcontractcat {name:'Account Management'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.name) contains 'managed backup' or toLower(c.code) starts with 'rmbr-' )
-MERGE (cc:Crmcontractcat {name:'Backup Plan'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'onboard') 
-MERGE (cc:Crmcontractcat {name:'Onboarding'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.name) contains 'cc-av' or toLower(c.name) contains 'cc-backup') 
-MERGE (cc:Crmcontractcat {name:'CloudCare'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'device plan' or toLower(c.name) contains 'managed wifi' or toLower(c.name) contains 'blue plan'
- or toLower(c.name) contains 'managed server'  or toLower(c.name) contains 'managed server' or toLower(c.code) starts with 'rmav-') 
-MERGE (cc:Crmcontractcat {name:'Device Plan'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.code) starts with 'rbmd-' or toLower(c.code) starts with 'rsmd-' or toLower(c.code) starts with 'rgmd-' or toLower(c.code) starts with 'rbi') 
-MERGE (cc:Crmcontractcat {name:'Device Plan'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where  (toLower(c.name) contains 'haas ' or toLower(c.code) contains '-haas' or toLower(c.code) starts with 'rhas-') 
-MERGE (cc:Crmcontractcat {name:'HaaS Plan'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.name) contains 'cloud email') 
-MERGE (cc:Crmcontractcat {name:'Hosted Exchange'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.code) starts with 'abni.') 
-MERGE (cc:Crmcontractcat {name:'Internal Operations'}) 
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'csp azure') 
-MERGE (cc:Crmcontractcat {name:'Microsoft Azure'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (ci:Crmitem)-[]-(:Crmcharge)-[]-(c:Crmcontract)-[]-(:Crmcontractstatus {value:'A'}) WHERE toLower(ci.description) contains 'azure'
-MATCH (cc:Crmcontractcat {name:'Microsoft Azure'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'microsoft csp' or toLower(c.name) contains 'o365 csp' or toLower(c.code) starts with 'rcsp') 
-MERGE (cc:Crmcontractcat {name:'Microsoft CSP'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where toLower(c.code) starts with 'tnbp'
-MERGE (cc:Crmcontractcat {name:'Feature Enablement'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where toLower(c.code) starts with 'rahs'
-MERGE (cc:Crmcontractcat {name:'After-Hours Support'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where  (toLower(c.code) starts with 'rspl-')
-MERGE (cc:Crmcontractcat {name:'Microsoft SPLA'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) //where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)
-WHERE (toLower(c.descexternal) contains 'blueassure' and toLower(c.descexternal) contains 'infrastructure' and toLower(c.descexternal) contains 'plan') or 
-toLower(c.code) starts with 'rbi'
-MERGE (cc:Crmcontractcat {name:'Device Plan'})  SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'plan on network') 
-MERGE (cc:Crmcontractcat {name:'Network Plan'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'blueassure' and toLower(c.name) contains 'network infrastructure' ) 
-MERGE (cc:Crmcontractcat {name:'Network Plan'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'out of scope')  or toLower(c.code) starts with 'twm-' or toLower(c.code) starts with 'o'
-MERGE (cc:Crmcontractcat {name:'Out of Scope'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'cloud plan' or toLower(c.name) contains 'cloud desktop' or toLower(c.name) contains 'cloud hybrid' or
- toLower(c.name) contains 'colo hosting' or toLower(c.name) contains 'hosting plan' or toLower(c.code) starts with 'rcls-' or toLower(c.code) starts with 'rpcs-' or toLower(c.code) starts with 'rhsm') 
-MERGE (cc:Crmcontractcat {name:'Private Cloud'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (n:Crmitem) where toLower(n.name) contains 'cloud desktop' or toLower(n.description) contains 'cloud desktop'
-MATCH (n)-[:INCLUDES_ITEM]-(cc:Crmcharge)-[:UNDER_CONTRACT]-(c:Crmcontract)-[:CONTRACT_STATUS]-(cs:Crmcontractstatus {value:'A'})
-WITH c
-MATCH (cc:Crmcontractcat {name:'Private Cloud'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'managed security' or toLower(c.name) contains 'managed firewall')
-MERGE (cc:Crmcontractcat {name:'Security Plan'}) SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)) and (toLower(c.name) contains 'statement of work' or toLower(c.name) contains 'sharepoint dev'  or 
-toLower(c.name) contains 'deployment' or toLower(c.name) contains 'software dev' or toLower(c.name) contains 'sharepoint support' or toLower(c.name) contains 'flat bid' or toLower(c.name) contains 'consulting' or 
-toLower(c.name) contains 'upgrade' or toLower(c.name) contains 'migration' or toLower(c.name) contains 'block of money' or toLower(c.name) contains 'block of time' or
-toLower(c.name) contains 'project' or toLower(c.name) contains 'config' or toLower(c.name) contains 'install' or toLower(c.name) contains 'adhoc' or toLower(c.code) starts with 'mdev' or toLower(c.code) starts with 'mprj') 
-MERGE (cc:Crmcontractcat {name:'Statement of Work'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)) and ( toLower(c.descexternal) contains 'billed for actual time' or toLower(c.descexternal) contains 'non-contract' or 
- toLower(c.descexternal) contains 'setup and install' or toLower(c.descexternal) contains 'setup labor' or toLower(c.descexternal) contains 'performance issues')
-MERGE (cc:Crmcontractcat {name:'Statement of Work'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where  not ((c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)) and ( toLower(c.code) starts with 'sow-' or toLower(c.code) starts with 'bot-' or toLower(c.code) starts with 'tdev-'
- or toLower(c.code) starts with 'tprj-' or toLower(c.code) starts with 't-' or toLower(c.code) starts with 'mprj-') 
-MERGE (cc:Crmcontractcat {name:'Statement of Work'})
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where (toLower(c.name) contains 'knowbe4'  ) 
-MERGE (cc:Crmcontractcat {name:'User Awareness Plan'})  SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) //where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat)
-WHERE (toLower(c.name) contains 'user plan' or toLower(c.name) contains 'managed user' or (toLower(c.name) contains 'blueassure' and toLower(c.name) contains 'user') or 
-toLower(c.code) starts with 'rbpu'  or toLower(c.code) starts with 'rbeu'  or toLower(c.code) starts with 'rbau') 
-MERGE (cc:Crmcontractcat {name:'User Plan'})  SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-MATCH (c:Crmcontract) where not (c)-[:CONTRACT_CATEGORY]-(:Crmcontractcat) and (toLower(c.code) starts with 'rbmu-' or toLower(c.code) starts with 'rsmu-' or toLower(c.code) starts with 'rgmu-') 
-MERGE (cc:Crmcontractcat {name:'Device Plan'})  SET cc.mrr=true
-MERGE (c)-[:CONTRACT_CATEGORY]->(cc)
-;
-
-// REMOVE accidental (double) categories
-MATCH (c:Crmcontract)-[]-(cc:Crmcontractcat) WHERE cc.mrr IS NULL or cc.mrr=false
-MATCH (c)-[r]-(cc2:Crmcontractcat {mrr:true})
-DELETE r;
-</script>
-      <replace_variables>N</replace_variables>
-      <parallel>N</parallel>
-      <xloc>400</xloc>
+      <xloc>896</xloc>
       <yloc>176</yloc>
       <attributes_hac/>
     </action>
@@ -455,22 +436,15 @@ DELETE r;
       <unconditional>N</unconditional>
     </hop>
     <hop>
+      <from>Assign (:Rangercontract) to (:Rangercontractcat) based on name and codes</from>
+      <to>Assign (:Rangercontract) to (:Rangercontractcat) based on name and codes (2)</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
       <from>Remove redundant contract types</from>
-      <to>CREATE RELATIONSHIP (:Crmcontract)-[:SERVICED_BY]-(:Bluenetexpress)</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>N</unconditional>
-    </hop>
-    <hop>
-      <from>CREATE RELATIONSHIP (:Crmcontract)-[:SERVICED_BY]-(:Bluenetexpress)</from>
-      <to>Assign (:Crmcontract) to (:Crmcontractcat) based on name and codes</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>N</unconditional>
-    </hop>
-    <hop>
-      <from>Assign (:Crmcontract) to (:Crmcontractcat) based on name and codes</from>
-      <to>Assign (:Crmcontract) to (:Crmcontractcat) based on name and codes (2)</to>
+      <to>Assign (:Rangercontract) to (:Rangercontractcat) based on name and codes</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>

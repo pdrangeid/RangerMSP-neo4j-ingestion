@@ -1,6 +1,6 @@
 <pipeline>
   <info>
-    <name>Ingest RangerMSP  (:Crmasset) nodes</name>
+    <name>Ingest RangerMSP  (:Rangerasset) nodes</name>
     <name_sync_with_filename>Y</name_sync_with_filename>
     <description/>
     <extended_description/>
@@ -24,23 +24,23 @@
   </notepads>
   <order>
     <hop>
-      <from>Query CommitCRM Assets (assets) table</from>
-      <to>Create (:Crmassets) nodes for new assets</to>
+      <from>Query RangerMSP Assets (assets) table</from>
+      <to>Create (:Rangerassets) nodes for new assets</to>
       <enabled>N</enabled>
     </hop>
     <hop>
-      <from>Get :Crmasset (last new)</from>
-      <to>Query CommitCRM Assets (assets) table</to>
+      <from>Get :Rangerasset (last new)</from>
+      <to>Query RangerMSP Assets (assets) table</to>
       <enabled>N</enabled>
     </hop>
     <hop>
-      <from>Get :Crmasset (last mod)</from>
-      <to>Query CommitCRM Assets (modified assets)</to>
+      <from>Get :Rangerasset (last mod)</from>
+      <to>Query RangerMSP Assets (modified assets)</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM Assets (modified assets)</from>
-      <to>Modify (:Crmassets) nodes for modified assets</to>
+      <from>Query RangerMSP Assets (modified assets)</from>
+      <to>Modify (:Rangerassets) nodes for modified assets</to>
       <enabled>N</enabled>
     </hop>
     <hop>
@@ -54,33 +54,33 @@
       <enabled>N</enabled>
     </hop>
     <hop>
-      <from>Modify (:Crmassets) nodes for modified assets</from>
+      <from>Modify (:Rangerassets) nodes for modified assets</from>
       <to>Block this step until steps finish</to>
       <enabled>N</enabled>
     </hop>
     <hop>
-      <from>Create (:Crmassets) nodes for new assets</from>
+      <from>Create (:Rangerassets) nodes for new assets</from>
       <to>Block this step until steps finish 3</to>
       <enabled>N</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM Assets (modified assets)</from>
-      <to>Modify :Crmassets (state/installed/created/used/company/cat/type) for modified assets </to>
+      <from>Query RangerMSP Assets (modified assets)</from>
+      <to>Modify :Rangerassets (state/installed/created/used/company/cat/type) for modified assets </to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM Assets (modified assets)</from>
-      <to>Modify :Crmassets (manufacturered) for modified assets </to>
+      <from>Query RangerMSP Assets (modified assets)</from>
+      <to>Modify :Rangerassets (manufacturered) for modified assets </to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM Assets (modified assets)</from>
-      <to>Modify :Crmassets (model/parent/haas) for modified assets</to>
+      <from>Query RangerMSP Assets (modified assets)</from>
+      <to>Modify :Rangerassets (model/parent/haas) for modified assets</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
       <from>Block this step until steps finish 2</from>
-      <to>Update the :Crmasset :Ticketqueue</to>
+      <to>Update the :Rangerasset :Ticketqueue</to>
       <enabled>Y</enabled>
     </hop>
   </order>
@@ -97,7 +97,7 @@
     </partitioning>
     <transforms>
       <transform>
-        <name>Modify (:Crmassets) nodes for modified assets</name>
+        <name>Modify (:Rangerassets) nodes for modified assets</name>
         <CopyNr>0</CopyNr>
       </transform>
     </transforms>
@@ -122,15 +122,15 @@
     </partitioning>
     <transforms>
       <transform>
-        <name>Modify :Crmassets (model/parent/haas) for modified assets</name>
+        <name>Modify :Rangerassets (model/parent/haas) for modified assets</name>
         <CopyNr>0</CopyNr>
       </transform>
       <transform>
-        <name>Modify :Crmassets (state/installed/created/used/company/cat/type) for modified assets </name>
+        <name>Modify :Rangerassets (state/installed/created/used/company/cat/type) for modified assets </name>
         <CopyNr>0</CopyNr>
       </transform>
       <transform>
-        <name>Modify :Crmassets (manufacturered) for modified assets </name>
+        <name>Modify :Rangerassets (manufacturered) for modified assets </name>
         <CopyNr>0</CopyNr>
       </transform>
     </transforms>
@@ -155,7 +155,7 @@
     </partitioning>
     <transforms>
       <transform>
-        <name>Create (:Crmassets) nodes for new assets</name>
+        <name>Create (:Rangerassets) nodes for new assets</name>
         <CopyNr>0</CopyNr>
       </transform>
     </transforms>
@@ -168,7 +168,7 @@
     </GUI>
   </transform>
   <transform>
-    <name>Clean (:Crmasset) names - remove strange characters</name>
+    <name>Clean (:Rangerasset) names - remove strange characters</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -180,7 +180,7 @@
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>WITH "[^a-zA-Z0-9-._@ ]" as regex
-MATCH (ca:Crmasset)
+MATCH (ca:Rangerasset)
 WITH ca,trim(apoc.text.replace(ca.name,regex,'')) as cleanname
 WITH ca,cleanname,toLower(ca.type) as catype where ca.name &lt;&gt; toLower(cleanname)
 WITH ca,cleanname,catype,["desktop","firewall","handset","notebook","power (pdu)","printer","storage device","switch","thin client","ups","wireless (access point)","wireless (controller)","workstation","zero client","server","virtual server","wireless (controller)"] as listoftypes
@@ -208,7 +208,7 @@ return ca.name,cleanname,ca.category,ca.type order by ca.type
     </GUI>
   </transform>
   <transform>
-    <name>Create (:Crmasset)-[:MONITORING_REQUIREMENT]->(:Monitoring)</name>
+    <name>Create (:Rangerasset)-[:MONITORING_REQUIREMENT]->(:Monitoring)</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -219,7 +219,7 @@ return ca.name,cleanname,ca.category,ca.type order by ca.type
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (ca:Crmasset) where not (ca)-[:MONITORING_REQUIREMENT]-(:Monitoring)
+    <cypher>MATCH (ca:Rangerasset) where not (ca)-[:MONITORING_REQUIREMENT]-(:Monitoring)
 MATCH (cmkm:Monitoring {value:'Y'})
 MATCH (mwpm:Monitoring {value:'M'})
 FOREACH (ignoreMe in CASE WHEN toLower(ca.type) contains 'server' THEN [1] ELSE [] END | MERGE (ca)-[:MONITORING_REQUIREMENT]->(cmkm))
@@ -258,7 +258,7 @@ RETURN count(ca)
     </GUI>
   </transform>
   <transform>
-    <name>Create (:Crmassets) nodes for new assets</name>
+    <name>Create (:Rangerassets) nodes for new assets</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -273,7 +273,7 @@ RETURN count(ca)
 MATCH (rs:Recordstatus {state:row.STATUS})
 MATCH (a:Company {acctrecid:coalesce(row.ACCOUNTRECID,'None Provided')})
 WITH *
-MERGE (ca:Crmasset {recid:row.RECID})
+MERGE (ca:Rangerasset {recid:row.RECID})
 //SET ca.name=trim(toLower(row.NAME)),ca.category=row.USER1,ca.manufacturer=row.MANUFACTURER,ca.assettag=row.ASSETCODE,ca.location=row.LOCATION,ca.description=row.DESCRIPTION,
 //ca.createdon=datetime(row.CREATEDATE).epochmillis,ca.updatedon=datetime(row.UPDATEDATE).epochmillis,ca.type=row.VALUE
 SET ca.name=trim(toLower(row.NAME)),ca.category=row.USER1,ca.manufacturer=row.MANUFACTURER,ca.assettag=row.ASSETCODE,ca.location=row.LOCATION,ca.description=row.DESCRIPTION,
@@ -306,16 +306,16 @@ FOREACH (ignoreMe in CASE WHEN row.MODEL is not null and trim(row.MODEL) &lt;&gt
 FOREACH (ignoreMe in CASE WHEN m.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_IS_MODEL]->(m))
 FOREACH (ignoreMe in CASE WHEN m.name IS NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_IS_MODEL]->(np))
 with ca,row
-OPTIONAL MATCH (pa:Crmasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
-OPTIONAL MATCH (ib:Crmemployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
-OPTIONAL MATCH (cb:Crmemployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
+OPTIONAL MATCH (pa:Rangerasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
+OPTIONAL MATCH (ib:Rangeremployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
+OPTIONAL MATCH (cb:Rangeremployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
 OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
 FOREACH (ignoreMe in CASE WHEN c.name IS NOT NULL THEN [1] ELSE [] END |MERGE (ca)-[:USED_BY]-(c))
 FOREACH (ignoreMe in CASE WHEN ib.name IS NOT NULL THEN [1] ELSE [] END |MERGE (ca)-[:INSTALLED_BY]-(ib))
 FOREACH (ignoreMe in CASE WHEN cb.name IS NOT NULL THEN [1] ELSE [] END |MERGE (ca)-[:CREATED_BY]-(cb))
 FOREACH (ignoreMe in CASE WHEN pa.name IS NOT NULL THEN [1] ELSE [] END |MERGE (pa)&lt;-[:CHILD_OF]-(ca))
 with ca,row
-OPTIONAL MATCH (ih:Crmhaas)
+OPTIONAL MATCH (ih:Rangerhaas)
 FOREACH (ignoreMe in CASE WHEN trim(toLower(row.USER5))='haas' THEN [1] ELSE [] END | MERGE (ca)-[:BLUENET_OWNED]->(ih))
 RETURN ca.name,ca.recid,ca.createdon
 ;</cypher>
@@ -461,7 +461,7 @@ RETURN ca.name,ca.recid,ca.createdon
     </GUI>
   </transform>
   <transform>
-    <name>Get :Crmasset (last mod)</name>
+    <name>Get :Rangerasset (last mod)</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -472,7 +472,7 @@ RETURN ca.name,ca.recid,ca.createdon
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>OPTIONAL MATCH (lna:Crmasset)
+    <cypher>OPTIONAL MATCH (lna:Rangerasset)
 WITH max(coalesce(lna.updatedon,0)) as lastmodifiedasset
 WITH apoc.date.format(coalesce(lastmodifiedasset,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastmodifiedasset
 RETURN lastmodifiedasset
@@ -504,7 +504,7 @@ RETURN lastmodifiedasset
     </GUI>
   </transform>
   <transform>
-    <name>Get :Crmasset (last new)</name>
+    <name>Get :Rangerasset (last new)</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -515,7 +515,7 @@ RETURN lastmodifiedasset
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>OPTIONAL MATCH (lna:Crmasset)
+    <cypher>OPTIONAL MATCH (lna:Rangerasset)
 WITH max(coalesce(lna.createdon,0)) as lastnewasset
 WITH apoc.date.format(coalesce(lastnewasset,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastnewasset
 //RETURN '2000-01-01 01:01:01.111' as lastnewasset
@@ -547,7 +547,7 @@ RETURN lastnewasset
     </GUI>
   </transform>
   <transform>
-    <name>Modify (:Crmassets) nodes for modified assets</name>
+    <name>Modify (:Rangerassets) nodes for modified assets</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -559,37 +559,37 @@ RETURN lastnewasset
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $assets as row
-MATCH (ca:Crmasset {recid:row.RECID})
+MATCH (ca:Rangerasset {recid:row.RECID})
 MATCH (a:Company {acctrecid:coalesce(row.ACCOUNTRECID,'None Provided')})
 WITH COLLECT (DISTINCT ca) as assets,a,row
 UNWIND assets as ca
-OPTIONAL MATCH (ib:Crmemployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
-OPTIONAL MATCH (cb:Crmemployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
-OPTIONAL MATCH (pa:Crmasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
+OPTIONAL MATCH (ib:Rangeremployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
+OPTIONAL MATCH (cb:Rangeremployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
+OPTIONAL MATCH (pa:Rangerasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
 OPTIONAL MATCH (m:Manufacturer {name:coalesce(row.MANUFACTURER,'None Provided')})
 OPTIONAL MATCH (md:Model {name:coalesce(row.MODEL,'None Provided')})
 OPTIONAL MATCH (ac:Assetcategory {name:coalesce(row.USER1,'None Provided')})
 OPTIONAL MATCH (at:Assettype {name:coalesce(row.VALUE,'None Provided')})
 OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
-// FIND matches to row values to change the existing (:Crmasset) properties and relationships to
+// FIND matches to row values to change the existing (:Rangerasset) properties and relationships to
 OPTIONAL MATCH (rs:Recordstatus {state:row.STATUS})
 OPTIONAL MATCH (m2:Manufacturer)-[:ALIAS_OF]-(:Mfralias {name:row.MANUFACTURER})
-//OPTIONAL MATCH (c2:Assetcategory)-[]-(:Crmcategory {name:trim(row.USER1)})
-// FIND relationships for the existing (:Crmasset) node
+//OPTIONAL MATCH (c2:Assetcategory)-[]-(:Rangercategory {name:trim(row.USER1)})
+// FIND relationships for the existing (:Rangerasset) node
 OPTIONAL MATCH (ca)-[asr:ASSET_STATE]-(oas:Recordstatus)
 OPTIONAL MATCH (ca)-[aor:ASSET_OF]-(oao:Company)
 OPTIONAL MATCH (ca)-[ubr:USED_BY]-(oub:Contact)
-OPTIONAL MATCH (ca)-[ibr:INSTALLED_BY]-(oib:Crmemployee)
-OPTIONAL MATCH (ca)-[cbr:CREATED_BY]-(ocb:Crmemployee)
-OPTIONAL MATCH (ca)-[cor:CHILD_OF]-(oco:Crmasset)
-OPTIONAL MATCH (ca)-[bor:BLUENET_OWNED]-(obo:Crmhaas)
+OPTIONAL MATCH (ca)-[ibr:INSTALLED_BY]-(oib:Rangeremployee)
+OPTIONAL MATCH (ca)-[cbr:CREATED_BY]-(ocb:Rangeremployee)
+OPTIONAL MATCH (ca)-[cor:CHILD_OF]-(oco:Rangerasset)
+OPTIONAL MATCH (ca)-[bor:BLUENET_OWNED]-(obo:Rangerhaas)
 OPTIONAL MATCH (ca)-[mbr:MANUFACTURED_BY]-(omb:Manufacturer)
 OPTIONAL MATCH (omb)--(omba:Mfralias)
 OPTIONAL MATCH (ca)-[icr:IN_CATEGORY]->(oic:Assetcategory)
 OPTIONAL MATCH (ca)-[atr:ASSET_TYPE]->(oat:Assettype)
-OPTIONAL MATCH (oic)--(oica:Crmcategory)
+OPTIONAL MATCH (oic)--(oica:Rangercategory)
 OPTIONAL MATCH (ca)-[aimr:ASSET_IS_MODEL]->(oaim:Model)
-OPTIONAL MATCH (ih:Crmhaas)
+OPTIONAL MATCH (ih:Rangerhaas)
 // REMOVE all relationships that are no longer correct
 FOREACH (ignoreMe in CASE WHEN row.STATUS &lt;&gt; oas.state THEN [1] ELSE [] END | DELETE asr)
 FOREACH (ignoreMe in CASE WHEN row.ACCOUNTRECID &lt;&gt; oao.acctrecid THEN [1] ELSE [] END | DELETE aor)
@@ -762,7 +762,7 @@ FOREACH (ignoreMe in CASE WHEN trim(toLower(row.USER5))='haas' and ih.name IS NO
     </GUI>
   </transform>
   <transform>
-    <name>Modify :Crmassets (manufacturered) for modified assets </name>
+    <name>Modify :Rangerassets (manufacturered) for modified assets </name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -774,7 +774,7 @@ FOREACH (ignoreMe in CASE WHEN trim(toLower(row.USER5))='haas' and ih.name IS NO
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $assets as row
-MATCH (ca:Crmasset {recid:row.RECID})
+MATCH (ca:Rangerasset {recid:row.RECID})
 
 WITH COLLECT(DISTINCT ca) as assets,row
 UNWIND assets as ca
@@ -782,7 +782,7 @@ UNWIND assets as ca
 OPTIONAL MATCH (m:Manufacturer {name:coalesce(row.MANUFACTURER,'None Provided')})
 OPTIONAL MATCH (m2:Manufacturer)-[:ALIAS_OF]-(:Mfralias {name:row.MANUFACTURER})
 
-// FIND relationships for the existing (:Crmasset) node
+// FIND relationships for the existing (:Rangerasset) node
 OPTIONAL MATCH (ca)-[mbr:MANUFACTURED_BY]-(omb:Manufacturer)
 OPTIONAL MATCH (ca)-[:MANUFACTURED_BY]-(:Manufacturer)-[:ALIAS_OF]-(omba:Mfralias)
 
@@ -921,7 +921,7 @@ FOREACH (ignoreMe in CASE WHEN m.name IS NOT NULL THEN [1] ELSE [] END | MERGE (
     </GUI>
   </transform>
   <transform>
-    <name>Modify :Crmassets (model/parent/haas) for modified assets</name>
+    <name>Modify :Rangerassets (model/parent/haas) for modified assets</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -933,19 +933,19 @@ FOREACH (ignoreMe in CASE WHEN m.name IS NOT NULL THEN [1] ELSE [] END | MERGE (
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $assets as row
-MATCH (ca:Crmasset {recid:row.RECID})
+MATCH (ca:Rangerasset {recid:row.RECID})
 
 WITH COLLECT(DISTINCT ca) as assets,row
 UNWIND assets as ca
 
-OPTIONAL MATCH (pa:Crmasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
+OPTIONAL MATCH (pa:Rangerasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
 OPTIONAL MATCH (md:Model {name:coalesce(row.MODEL,'None Provided')})
-OPTIONAL MATCH (ih:Crmhaas)
+OPTIONAL MATCH (ih:Rangerhaas)
 
-// FIND relationships for the existing (:Crmasset) node
-OPTIONAL MATCH (ca)-[cor:CHILD_OF]-(oco:Crmasset)
+// FIND relationships for the existing (:Rangerasset) node
+OPTIONAL MATCH (ca)-[cor:CHILD_OF]-(oco:Rangerasset)
 OPTIONAL MATCH (ca)-[aimr:ASSET_IS_MODEL]->(oaim:Model)
-OPTIONAL MATCH (ca)-[bor:BLUENET_OWNED]-(obo:Crmhaas)
+OPTIONAL MATCH (ca)-[bor:BLUENET_OWNED]-(obo:Rangerhaas)
 
 // REMOVE all relationships that are no longer correct
 FOREACH (ignoreMe in CASE WHEN oco.recid IS NULL or (row.PARENTASSETRECID &lt;&gt; oco.recid)  THEN [1] ELSE [] END | DELETE cor)
@@ -1085,7 +1085,7 @@ FOREACH (ignoreMe in CASE WHEN trim(toLower(row.USER5))='haas' and ih.name IS NO
     </GUI>
   </transform>
   <transform>
-    <name>Modify :Crmassets (state/installed/created/used/company/cat/type) for modified assets </name>
+    <name>Modify :Rangerassets (state/installed/created/used/company/cat/type) for modified assets </name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -1097,22 +1097,22 @@ FOREACH (ignoreMe in CASE WHEN trim(toLower(row.USER5))='haas' and ih.name IS NO
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $assets as row
-MATCH (ca:Crmasset {recid:row.RECID})
+MATCH (ca:Rangerasset {recid:row.RECID})
 MATCH (a:Company {acctrecid:coalesce(row.ACCOUNTRECID,'None Provided')})
 WITH COLLECT(DISTINCT ca) as assets,a,row
 UNWIND assets as ca
 
 OPTIONAL MATCH (rs:Recordstatus {state:row.STATUS})
 OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
-OPTIONAL MATCH (ib:Crmemployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
-OPTIONAL MATCH (cb:Crmemployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
+OPTIONAL MATCH (ib:Rangeremployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
+OPTIONAL MATCH (cb:Rangeremployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
 
-// FIND relationships for the existing (:Crmasset) node
+// FIND relationships for the existing (:Rangerasset) node
 OPTIONAL MATCH (ca)-[asr:ASSET_STATE]-(oas:Recordstatus)
 OPTIONAL MATCH (ca)-[aor:ASSET_OF]-(oao:Company)
 OPTIONAL MATCH (ca)-[ubr:USED_BY]-(oub:Contact)
-OPTIONAL MATCH (ca)-[ibr:INSTALLED_BY]-(oib:Crmemployee)
-OPTIONAL MATCH (ca)-[cbr:CREATED_BY]-(ocb:Crmemployee)
+OPTIONAL MATCH (ca)-[ibr:INSTALLED_BY]-(oib:Rangeremployee)
+OPTIONAL MATCH (ca)-[cbr:CREATED_BY]-(ocb:Rangeremployee)
 OPTIONAL MATCH (ca)-[icr:IN_CATEGORY]->(oic:Assetcategory)
 OPTIONAL MATCH (ca)-[atr:ASSET_TYPE]->(oat:Assettype)
 
@@ -1272,7 +1272,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
     </GUI>
   </transform>
   <transform>
-    <name>Query CommitCRM Assets (assets) table</name>
+    <name>Query RangerMSP Assets (assets) table</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -1285,7 +1285,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
     <connection>${RangerMSP-ds}</connection>
     <sql>select v.VALUE,a.RECID,a.ACCOUNTRECID,a.CONTACTRECID,a.PARENTASSETRECID,a.STATUS,a.NAME,a.SERIALNO,a.ASSETCODE,a.LOCATION,a.WARRANTYEXPDATE,a.INSTALLEDBY,CAST(a.DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,a.MANUFACTURER,a.MODEL,a.USER3,a.CREATEUSER,a.CREATEDATE,a.UPDATEDATE,a.USER1,a.USER5 from ValuesList as v INNER JOIN Assets AS a on v.RECID = a.ASSETTYPE where a.RECID is not null AND a.CREATEDATE > ?</sql>
     <limit>0</limit>
-    <lookup>Get :Crmasset (last new)</lookup>
+    <lookup>Get :Rangerasset (last new)</lookup>
     <execute_each_row>N</execute_each_row>
     <variables_active>Y</variables_active>
     <lazy_conversion_active>Y</lazy_conversion_active>
@@ -1301,7 +1301,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>VALUE</name>
             <length>100</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>VALUE</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1322,7 +1322,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>VALUE</name>
         <length>100</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>VALUE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1349,7 +1349,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>RECID</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>RECID</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1370,7 +1370,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>RECID</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>RECID</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1397,7 +1397,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>ACCOUNTRECID</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>ACCOUNTRECID</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1418,7 +1418,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>ACCOUNTRECID</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>ACCOUNTRECID</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1445,7 +1445,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>CONTACTRECID</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>CONTACTRECID</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1466,7 +1466,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>CONTACTRECID</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>CONTACTRECID</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1493,7 +1493,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>PARENTASSETRECID</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>PARENTASSETRECID</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1514,7 +1514,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>PARENTASSETRECID</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>PARENTASSETRECID</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1541,7 +1541,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>STATUS</name>
             <length>1</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>STATUS</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1562,7 +1562,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>STATUS</name>
         <length>1</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>STATUS</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1589,7 +1589,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>NAME</name>
             <length>60</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>NAME</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1610,7 +1610,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>NAME</name>
         <length>60</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>NAME</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1637,7 +1637,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>SERIALNO</name>
             <length>30</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>SERIALNO</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1658,7 +1658,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>SERIALNO</name>
         <length>30</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>SERIALNO</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1685,7 +1685,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>ASSETCODE</name>
             <length>30</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>ASSETCODE</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1706,7 +1706,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>ASSETCODE</name>
         <length>30</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>ASSETCODE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1733,7 +1733,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>LOCATION</name>
             <length>50</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>LOCATION</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1754,7 +1754,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>LOCATION</name>
         <length>50</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>LOCATION</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1777,7 +1777,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>WARRANTYEXPDATE</name>
         <length>-1</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>WARRANTYEXPDATE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1804,7 +1804,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>INSTALLEDBY</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>INSTALLEDBY</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1825,7 +1825,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>INSTALLEDBY</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>INSTALLEDBY</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1852,7 +1852,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>DESCRIPTION</name>
             <length>1024</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>DESCRIPTION</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1873,7 +1873,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>DESCRIPTION</name>
         <length>1024</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>DESCRIPTION</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1900,7 +1900,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>MANUFACTURER</name>
             <length>40</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>MANUFACTURER</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1921,7 +1921,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>MANUFACTURER</name>
         <length>40</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>MANUFACTURER</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1948,7 +1948,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>MODEL</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>MODEL</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -1969,7 +1969,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>MODEL</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>MODEL</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -1996,7 +1996,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>USER3</name>
             <length>25</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>USER3</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2017,7 +2017,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>USER3</name>
         <length>25</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>USER3</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2044,7 +2044,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>CREATEUSER</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>CREATEUSER</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2065,7 +2065,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>CREATEUSER</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>CREATEUSER</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2088,7 +2088,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>CREATEDATE</name>
         <length>0</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>CREATEDATE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2111,7 +2111,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>UPDATEDATE</name>
         <length>0</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>UPDATEDATE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2138,7 +2138,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>USER1</name>
             <length>25</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>USER1</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2159,7 +2159,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>USER1</name>
         <length>25</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>USER1</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2186,7 +2186,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>USER5</name>
             <length>25</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (assets) table</origin>
+            <origin>Query RangerMSP Assets (assets) table</origin>
             <comments>USER5</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2207,7 +2207,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>USER5</name>
         <length>25</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (assets) table</origin>
+        <origin>Query RangerMSP Assets (assets) table</origin>
         <comments>USER5</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2234,7 +2234,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
     </GUI>
   </transform>
   <transform>
-    <name>Query CommitCRM Assets (modified assets)</name>
+    <name>Query RangerMSP Assets (modified assets)</name>
     <type>TableInput</type>
     <description/>
     <distribute>N</distribute>
@@ -2248,7 +2248,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
     <sql>select v.VALUE,a.RECID,a.ACCOUNTRECID,a.CONTACTRECID,a.PARENTASSETRECID,a.STATUS,a.NAME,a.SERIALNO,a.ASSETCODE,a.WARRANTYEXPDATE,a.LOCATION,a.INSTALLEDBY,CAST(a.DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,a.MANUFACTURER,a.MODEL,a.USER3,a.CREATEUSER,CAST(a.CREATEDATE as SQL_VARCHAR) AS CREATEDATE,CAST(a.UPDATEDATE as SQL_VARCHAR) AS UPDATEDATE,a.USER1,a.USER5 from ValuesList as v INNER JOIN Assets AS a on v.RECID = a.ASSETTYPE where a.RECID is not null AND a.UPDATEDATE > ?
 --select v.VALUE,a.RECID,a.ACCOUNTRECID,a.CONTACTRECID,a.PARENTASSETRECID,a.STATUS,a.NAME,a.SERIALNO,a.ASSETCODE,a.WARRANTYEXPDATE,a.LOCATION,a.INSTALLEDBY,CAST(a.DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,a.MANUFACTURER,a.MODEL,a.USER3,a.CREATEUSER,CAST(a.CREATEDATE as SQL_VARCHAR) AS CREATEDATE,CAST(a.UPDATEDATE as SQL_VARCHAR) AS UPDATEDATE,a.USER1,a.USER5 from ValuesList as v INNER JOIN Assets AS a on v.RECID = a.ASSETTYPE where a.RECID ='ASTNTHR6AAE9NFGUYUU3' AND a.UPDATEDATE > ?</sql>
     <limit>0</limit>
-    <lookup>Get :Crmasset (last mod)</lookup>
+    <lookup>Get :Rangerasset (last mod)</lookup>
     <execute_each_row>N</execute_each_row>
     <variables_active>Y</variables_active>
     <lazy_conversion_active>Y</lazy_conversion_active>
@@ -2264,7 +2264,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>VALUE</name>
             <length>100</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>VALUE</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2285,7 +2285,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>VALUE</name>
         <length>100</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>VALUE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2312,7 +2312,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>RECID</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>RECID</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2333,7 +2333,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>RECID</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>RECID</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2360,7 +2360,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>ACCOUNTRECID</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>ACCOUNTRECID</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2381,7 +2381,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>ACCOUNTRECID</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>ACCOUNTRECID</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2408,7 +2408,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>CONTACTRECID</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>CONTACTRECID</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2429,7 +2429,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>CONTACTRECID</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>CONTACTRECID</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2456,7 +2456,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>PARENTASSETRECID</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>PARENTASSETRECID</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2477,7 +2477,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>PARENTASSETRECID</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>PARENTASSETRECID</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2504,7 +2504,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>STATUS</name>
             <length>1</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>STATUS</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2525,7 +2525,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>STATUS</name>
         <length>1</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>STATUS</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2552,7 +2552,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>NAME</name>
             <length>60</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>NAME</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2573,7 +2573,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>NAME</name>
         <length>60</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>NAME</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2600,7 +2600,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>SERIALNO</name>
             <length>30</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>SERIALNO</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2621,7 +2621,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>SERIALNO</name>
         <length>30</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>SERIALNO</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2648,7 +2648,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>ASSETCODE</name>
             <length>30</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>ASSETCODE</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2669,7 +2669,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>ASSETCODE</name>
         <length>30</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>ASSETCODE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2692,7 +2692,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>WARRANTYEXPDATE</name>
         <length>-1</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>WARRANTYEXPDATE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2719,7 +2719,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>LOCATION</name>
             <length>50</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>LOCATION</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2740,7 +2740,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>LOCATION</name>
         <length>50</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>LOCATION</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2767,7 +2767,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>INSTALLEDBY</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>INSTALLEDBY</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2788,7 +2788,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>INSTALLEDBY</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>INSTALLEDBY</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2815,7 +2815,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>DESCRIPTION</name>
             <length>1024</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>DESCRIPTION</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2836,7 +2836,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>DESCRIPTION</name>
         <length>1024</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>DESCRIPTION</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2863,7 +2863,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>MANUFACTURER</name>
             <length>40</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>MANUFACTURER</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2884,7 +2884,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>MANUFACTURER</name>
         <length>40</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>MANUFACTURER</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2911,7 +2911,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>MODEL</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>MODEL</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2932,7 +2932,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>MODEL</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>MODEL</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -2959,7 +2959,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>USER3</name>
             <length>25</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>USER3</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -2980,7 +2980,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>USER3</name>
         <length>25</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>USER3</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -3007,7 +3007,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>CREATEUSER</name>
             <length>20</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>CREATEUSER</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -3028,7 +3028,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>CREATEUSER</name>
         <length>20</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>CREATEUSER</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -3055,7 +3055,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>CREATEDATE</name>
             <length>23</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>CREATEDATE</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -3076,7 +3076,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>CREATEDATE</name>
         <length>23</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>CREATEDATE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -3103,7 +3103,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>UPDATEDATE</name>
             <length>23</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>UPDATEDATE</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -3124,7 +3124,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>UPDATEDATE</name>
         <length>23</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>UPDATEDATE</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -3151,7 +3151,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>USER1</name>
             <length>25</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>USER1</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -3172,7 +3172,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>USER1</name>
         <length>25</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>USER1</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -3199,7 +3199,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
             <name>USER5</name>
             <length>25</length>
             <precision>-1</precision>
-            <origin>Query CommitCRM Assets (modified assets)</origin>
+            <origin>Query RangerMSP Assets (modified assets)</origin>
             <comments>USER5</comments>
             <conversion_Mask/>
             <decimal_symbol>.</decimal_symbol>
@@ -3220,7 +3220,7 @@ FOREACH (ignoreMe in CASE WHEN cb.acctrecid IS NOT NULL THEN [1] ELSE [] END | M
         <name>USER5</name>
         <length>25</length>
         <precision>-1</precision>
-        <origin>Query CommitCRM Assets (modified assets)</origin>
+        <origin>Query RangerMSP Assets (modified assets)</origin>
         <comments>USER5</comments>
         <conversion_Mask/>
         <decimal_symbol>.</decimal_symbol>
@@ -3329,7 +3329,7 @@ SET l.assetnewcompleted=lastupdate
     </GUI>
   </transform>
   <transform>
-    <name>Update the :Crmasset :Ticketqueue</name>
+    <name>Update the :Rangerasset :Ticketqueue</name>
     <type>ExecSQL</type>
     <description/>
     <distribute>Y</distribute>
@@ -3348,8 +3348,8 @@ SET l.assetnewcompleted=lastupdate
 
 WITH timestamp() as now,timestamp()+3888000000 as in45days
 WITH *,apoc.date.format(now+2592000000,'ms','MM/dd/yyyy HH:mm:ss','CST') as duedate
-MATCH (a:Company)-[:ASSET_OF]-(ca:Crmasset)-[:ASSET_STATE]-(:Recordstatus {state:'A'}) WHERE ca.expireson>now and ca.expireson&lt;in45days
-OPTIONAL MATCH (a)-[:ACCOUNT_MANAGER]-(e:Crmemployee)
+MATCH (a:Company)-[:ASSET_OF]-(ca:Rangerasset)-[:ASSET_STATE]-(:Recordstatus {state:'A'}) WHERE ca.expireson>now and ca.expireson&lt;in45days
+OPTIONAL MATCH (a)-[:ACCOUNT_MANAGER]-(e:Rangeremployee)
 WITH *,apoc.date.format(ca.expireson,'ms','yyyy-MM-dd','CST') as Expiration
 MERGE (tq:Ticketqueue {host:ca.name,service:'Expiring Asset',asset:ca.recid})
 ON CREATE SET tq.acctrecid=a.acctrecid,tq.company=a.name,tq.tickettype='Sales',tq.source='Graph Automation',tq.submitted=timestamp(),tq.status='submitted',tq.createcounter=0,tq.duedate=duedate,tq.autoclose='Do not Autoclose',tq.expiration=Expiration,tq.manager=coalesce(e.acctrecid,'CRDVFE2WLHAEO7NF8XCZ') 
@@ -3372,7 +3372,7 @@ RETURN a.name,ca.name,tq.expiration;
     </GUI>
   </transform>
   <transform>
-    <name>update :Crmasset to :Assetcategory</name>
+    <name>update :Rangerasset to :Assetcategory</name>
     <type>ExecSQL</type>
     <description/>
     <distribute>Y</distribute>
@@ -3390,21 +3390,21 @@ RETURN a.name,ca.name,tq.expiration;
     <sql>
 WITH ['server','azure','appliance','firewall','ipmi','onsite manager','pbx','router','storage device','switch','ups','wireless','virtual server','multifunction' ,'power (pdu)','power (controller)','vpn'] as list
 MATCH (at:Assettype) WHERE any (item in list where toLower(at.name) contains item)
-MATCH (ca:Crmasset)-[:ASSET_TYPE]-(at) where not ((ca)-[:ASSET_CLASS]-(:Assetclass))
+MATCH (ca:Rangerasset)-[:ASSET_TYPE]-(at) where not ((ca)-[:ASSET_CLASS]-(:Assetclass))
 MATCH (ac:Assetclass {name:'Infrastructure'})
 MERGE (ca)-[:ASSET_CLASS]->(ac)
 ;
 
 WITH ['printer','display','peripheral','scanner'] as list
 MATCH (at:Assettype) WHERE any (item in list where toLower(at.name) contains item)
-MATCH (ca:Crmasset)-[:ASSET_TYPE]-(at) where not ((ca)-[:ASSET_CLASS]-(:Assetclass))
+MATCH (ca:Rangerasset)-[:ASSET_TYPE]-(at) where not ((ca)-[:ASSET_CLASS]-(:Assetclass))
 MATCH (ac:Assetclass {name:'Peripheral'})
 MERGE (ca)-[:ASSET_CLASS]->(ac)
 ;
 
 WITH ['desktop','notebook','mini pc','tablet','thin client','workstation','zero client'] as list
 MATCH (at:Assettype) WHERE any (item in list where toLower(at.name) contains item)
-MATCH (ca:Crmasset)-[:ASSET_TYPE]-(at) where not ((ca)-[:ASSET_CLASS]-(:Assetclass))
+MATCH (ca:Rangerasset)-[:ASSET_TYPE]-(at) where not ((ca)-[:ASSET_CLASS]-(:Assetclass))
 MATCH (ac:Assetclass {name:'Endpoint'})
 MERGE (ca)-[:ASSET_CLASS]->(ac)
 ;</sql>

@@ -39,13 +39,13 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query DISTINCT (:Crmcontractpayment) nodes</from>
-      <to>CREATE DISTINCT (:Crmcontractpayment) nodes</to>
+      <from>Query DISTINCT (:Rangercontractpayment) nodes</from>
+      <to>CREATE DISTINCT (:Rangercontractpayment) nodes</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query DISTINCT (:Crmprojectstatus) nodes</from>
-      <to>CREATE DISTINCT (:Crmcontractstatus) nodes</to>
+      <from>Query DISTINCT (:Rangerprojectstatus) nodes</from>
+      <to>CREATE DISTINCT (:Rangercontractstatus) nodes</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -74,11 +74,6 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Get variables</from>
-      <to>Update Logging (RangerMSP update tf start)</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
       <from>Ingest Public Domains</from>
       <to>Collect Public Domains</to>
       <enabled>Y</enabled>
@@ -103,85 +98,77 @@
       <to>ContractTypes</to>
       <enabled>Y</enabled>
     </hop>
+    <hop>
+      <from>Block until transforms finish</from>
+      <to>Update Manufacturer from assets</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Block until transforms finish 2</from>
+      <to>UpdateOppstage from opps</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Block until transforms finish 3</from>
+      <to>UpdateOppkind from opps</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Block until transforms finish 4</from>
+      <to>Update Oppreason from opps</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Block until transforms finish 5</from>
+      <to>Update Oppsource from opps</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Block until transforms finish 5 2</from>
+      <to>Ingest Public Domains</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Wait </from>
+      <to>Query Ticketcategories from RangerMSP</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Wait  2</from>
+      <to>Query Contract Types from RangerMSP</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Wait  3</from>
+      <to>Query DISTINCT (:Rangercontractpayment) nodes</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Wait  4</from>
+      <to>Query DISTINCT (:Rangerprojectstatus) nodes</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Wait  5</from>
+      <to>Query :Ticketstatus from RangerMSP</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Wait  6</from>
+      <to>Query :Ticketpriority from RangerMSP</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Wait  7</from>
+      <to>Update :Ticketlabel nodes from Labels </to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Wait  8</from>
+      <to>Query DISTINCT (:Itemclass) nodes</to>
+      <enabled>Y</enabled>
+    </hop>
   </order>
-  <transform>
-    <name>CREATE DISTINCT (:Crmcontractpayment) nodes</name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $payments as p
-MERGE (cps:Crmcontractpayment {name:p.user1})
-;</cypher>
-    <batch_size>500</batch_size>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>payments</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>user1</parameter>
-        <field>user1</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns/>
-    <attributes/>
-    <GUI>
-      <xloc>1072</xloc>
-      <yloc>160</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>CREATE DISTINCT (:Crmcontractstatus) nodes</name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $projstatus as p
-MERGE (ps:Crmprojectstatus {name:p.user3})
-;</cypher>
-    <batch_size>500</batch_size>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>projstatus</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>user3</parameter>
-        <field>user3</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns/>
-    <attributes/>
-    <GUI>
-      <xloc>1072</xloc>
-      <yloc>224</yloc>
-    </GUI>
-  </transform>
   <transform>
     <name>CREATE DISTINCT (:Itemclass) nodes</name>
     <type>Neo4jCypherOutput</type>
@@ -225,14 +212,93 @@ RETURN i.user1
     </returns>
     <attributes/>
     <GUI>
-      <xloc>1072</xloc>
-      <yloc>496</yloc>
+      <xloc>1456</xloc>
+      <yloc>592</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>CREATE DISTINCT (:Rangercontractpayment) nodes</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $payments as p
+MERGE (cps:Rangercontractpayment {name:p.user1})
+;</cypher>
+    <batch_size>500</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>payments</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>user1</parameter>
+        <field>user1</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>1456</xloc>
+      <yloc>256</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>CREATE DISTINCT (:Rangercontractstatus) nodes</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $projstatus as p
+MERGE (ps:Rangerprojectstatus {name:p.user3})
+;</cypher>
+    <batch_size>500</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>projstatus</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>user3</parameter>
+        <field>user3</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>1456</xloc>
+      <yloc>320</yloc>
     </GUI>
   </transform>
   <transform>
     <name>Collect Public Domains</name>
     <type>Neo4jCypherOutput</type>
-    <description/>
+    <description>inget public email domains list from csv
+</description>
     <distribute>Y</distribute>
     <custom_distribution/>
     <copies>1</copies>
@@ -273,8 +339,8 @@ RETURN domains,row</cypher>
     <returns/>
     <attributes/>
     <GUI>
-      <xloc>384</xloc>
-      <yloc>560</yloc>
+      <xloc>624</xloc>
+      <yloc>592</yloc>
     </GUI>
   </transform>
   <transform>
@@ -291,7 +357,7 @@ RETURN domains,row</cypher>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $ctypes as c
 WITH * WHERE c.name='Block of Money' or c.name='Block of Tickets' or c.name='Block of Time' or c.name = 'IT Project (Time &amp; Material)'
-MERGE (gc:Crmcontracttype {recid:c.recid})
+MERGE (gc:Rangercontracttype {recid:c.recid})
 SET gc.name=c.name,gc.value=c.value,gc.project=c.project
 SET gc.default=true
 RETURN count(gc) AS contracttypes
@@ -332,8 +398,8 @@ RETURN count(gc) AS contracttypes
     <returns/>
     <attributes/>
     <GUI>
-      <xloc>1072</xloc>
-      <yloc>96</yloc>
+      <xloc>1456</xloc>
+      <yloc>192</yloc>
     </GUI>
   </transform>
   <transform>
@@ -388,8 +454,8 @@ RETURN count(tp) as ticketprioritycount
     <returns/>
     <attributes/>
     <GUI>
-      <xloc>1072</xloc>
-      <yloc>352</yloc>
+      <xloc>1456</xloc>
+      <yloc>448</yloc>
     </GUI>
   </transform>
   <transform>
@@ -456,8 +522,8 @@ RETURN count(ts) as ticketstatuscount
     <returns/>
     <attributes/>
     <GUI>
-      <xloc>1072</xloc>
-      <yloc>288</yloc>
+      <xloc>1456</xloc>
+      <yloc>384</yloc>
     </GUI>
   </transform>
   <transform>
@@ -503,8 +569,8 @@ RETURN c.CATEGORY as category
     </returns>
     <attributes/>
     <GUI>
-      <xloc>1072</xloc>
-      <yloc>32</yloc>
+      <xloc>624</xloc>
+      <yloc>672</yloc>
     </GUI>
   </transform>
   <transform>
@@ -554,8 +620,8 @@ RETURN l.name
     </returns>
     <attributes/>
     <GUI>
-      <xloc>1072</xloc>
-      <yloc>416</yloc>
+      <xloc>1456</xloc>
+      <yloc>512</yloc>
     </GUI>
   </transform>
   <transform>
@@ -601,8 +667,8 @@ MERGE (ac:Assetcategory {name:cat})
     </returns>
     <attributes/>
     <GUI>
-      <xloc>384</xloc>
-      <yloc>112</yloc>
+      <xloc>624</xloc>
+      <yloc>128</yloc>
     </GUI>
   </transform>
   <transform>
@@ -644,8 +710,8 @@ MERGE (:Manufacturer {name:mfr})
     <returns/>
     <attributes/>
     <GUI>
-      <xloc>384</xloc>
-      <yloc>176</yloc>
+      <xloc>624</xloc>
+      <yloc>192</yloc>
     </GUI>
   </transform>
   <transform>
@@ -690,8 +756,8 @@ RETURN k.kind as kind
     </returns>
     <attributes/>
     <GUI>
-      <xloc>384</xloc>
-      <yloc>368</yloc>
+      <xloc>624</xloc>
+      <yloc>352</yloc>
     </GUI>
   </transform>
   <transform>
@@ -736,7 +802,7 @@ RETURN r.reason as reason
     </returns>
     <attributes/>
     <GUI>
-      <xloc>384</xloc>
+      <xloc>624</xloc>
       <yloc>432</yloc>
     </GUI>
   </transform>
@@ -782,8 +848,8 @@ RETURN s.source as source
     </returns>
     <attributes/>
     <GUI>
-      <xloc>384</xloc>
-      <yloc>496</yloc>
+      <xloc>624</xloc>
+      <yloc>512</yloc>
     </GUI>
   </transform>
   <transform>
@@ -834,99 +900,8 @@ RETURN stageid,stagename
     </returns>
     <attributes/>
     <GUI>
-      <xloc>384</xloc>
-      <yloc>240</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Get variables</name>
-    <type>GetVariable</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <name>jobname</name>
-        <variable> ${Internal.Workflow.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>transname</name>
-        <variable>${Internal.Pipeline.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>tdir</name>
-        <variable>${Internal.Pipeline.Filename.Folder}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>jdir</name>
-        <variable>${Internal.Workflow.Filename.Folder}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>jfilename</name>
-        <variable>${Internal.Workflow.Filename.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>tfilename</name>
-        <variable>${Internal.Pipeline.Filename.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-    </fields>
-    <attributes/>
-    <GUI>
-      <xloc>112</xloc>
-      <yloc>48</yloc>
+      <xloc>624</xloc>
+      <yloc>272</yloc>
     </GUI>
   </transform>
   <transform>
@@ -968,8 +943,8 @@ RETURN stageid,stagename
     </fields>
     <attributes/>
     <GUI>
-      <xloc>112</xloc>
-      <yloc>560</yloc>
+      <xloc>352</xloc>
+      <yloc>592</yloc>
     </GUI>
   </transform>
   <transform>
@@ -990,8 +965,8 @@ RETURN stageid,stagename
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>784</xloc>
-      <yloc>352</yloc>
+      <xloc>1168</xloc>
+      <yloc>448</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1012,8 +987,8 @@ RETURN stageid,stagename
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>784</xloc>
-      <yloc>288</yloc>
+      <xloc>1168</xloc>
+      <yloc>384</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1034,52 +1009,8 @@ RETURN stageid,stagename
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>784</xloc>
-      <yloc>96</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Query DISTINCT (:Crmcontractpayment) nodes</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${RangerMSP-ds}</connection>
-    <execute_each_row>N</execute_each_row>
-    <limit>0</limit>
-    <sql>SELECT DISTINCT user1 from bcontracts where user1 is not null</sql>
-    <variables_active>N</variables_active>
-    <attributes/>
-    <GUI>
-      <xloc>784</xloc>
-      <yloc>160</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Query DISTINCT (:Crmprojectstatus) nodes</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${RangerMSP-ds}</connection>
-    <execute_each_row>N</execute_each_row>
-    <limit>0</limit>
-    <sql>SELECT DISTINCT user3 from bcontracts where user3 is not null</sql>
-    <variables_active>N</variables_active>
-    <attributes/>
-    <GUI>
-      <xloc>784</xloc>
-      <yloc>224</yloc>
+      <xloc>1168</xloc>
+      <yloc>192</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1100,8 +1031,52 @@ RETURN stageid,stagename
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>784</xloc>
-      <yloc>496</yloc>
+      <xloc>1168</xloc>
+      <yloc>592</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query DISTINCT (:Rangercontractpayment) nodes</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <limit>0</limit>
+    <sql>SELECT DISTINCT user1 from bcontracts where user1 is not null</sql>
+    <variables_active>N</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>1168</xloc>
+      <yloc>256</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query DISTINCT (:Rangerprojectstatus) nodes</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <limit>0</limit>
+    <sql>SELECT DISTINCT user3 from bcontracts where user3 is not null</sql>
+    <variables_active>N</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>1168</xloc>
+      <yloc>320</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1122,8 +1097,8 @@ RETURN stageid,stagename
     <variables_active>Y</variables_active>
     <attributes/>
     <GUI>
-      <xloc>784</xloc>
-      <yloc>32</yloc>
+      <xloc>336</xloc>
+      <yloc>672</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1143,8 +1118,8 @@ RETURN stageid,stagename
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>784</xloc>
-      <yloc>416</yloc>
+      <xloc>1168</xloc>
+      <yloc>512</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1164,91 +1139,8 @@ RETURN stageid,stagename
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>112</xloc>
-      <yloc>112</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Update Logging (RangerMSP update tf start)</name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $taskparams as t
-WITH t,timestamp() as tfstart,trim(replace(t.jobname,'Parent Job Name',t.transname)) as jobname
-MATCH (l:N4jlogging {jobname:jobname})
-SET l.lasttfrun=tfstart,l.jobname=jobname,l.transname=t.transname,l.jobstatus='running',l.tdir=t.tdir,l.tfilename=t.tfilename,l.jdir=t.jdir,l.jfilename=t.jfilename
-RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobstart,l.jobname
-;</cypher>
-    <batch_size/>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>taskparams</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>jobname</parameter>
-        <field>jobname</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>transname</parameter>
-        <field>transname</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>tdir</parameter>
-        <field>tdir</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>jdir</parameter>
-        <field>jdir</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>jfilename</parameter>
-        <field>jfilename</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>tfilename</parameter>
-        <field>tfilename</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns>
-      <return>
-        <name>jobstart</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>l.jobname</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>l.transname</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-    </returns>
-    <attributes/>
-    <GUI>
-      <xloc>384</xloc>
-      <yloc>48</yloc>
+      <xloc>352</xloc>
+      <yloc>128</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1268,8 +1160,8 @@ RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobs
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>112</xloc>
-      <yloc>176</yloc>
+      <xloc>352</xloc>
+      <yloc>192</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1289,7 +1181,7 @@ RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobs
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>112</xloc>
+      <xloc>352</xloc>
       <yloc>432</yloc>
     </GUI>
   </transform>
@@ -1310,8 +1202,8 @@ RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobs
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>112</xloc>
-      <yloc>496</yloc>
+      <xloc>352</xloc>
+      <yloc>512</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1331,8 +1223,8 @@ RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobs
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>112</xloc>
-      <yloc>368</yloc>
+      <xloc>352</xloc>
+      <yloc>352</yloc>
     </GUI>
   </transform>
   <transform>
@@ -1352,8 +1244,330 @@ RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobs
     <variables_active>N</variables_active>
     <attributes/>
     <GUI>
-      <xloc>112</xloc>
-      <yloc>240</yloc>
+      <xloc>352</xloc>
+      <yloc>272</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Block until transforms finish</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create new distinct Assetcategory nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>192</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Block until transforms finish 2</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create new distinct Manufacturer nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>272</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Block until transforms finish 3</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create new distinct Oppstage nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>352</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Block until transforms finish 4</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create new distinct Oppkind nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>432</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Block until transforms finish 5</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create new distinct Oppreason nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>512</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Block until transforms finish 5 2</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create new distinct Oppsource nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>592</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Wait </name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Collect Public Domains</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>672</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Wait  2</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create :Ticketcategory nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>960</xloc>
+      <yloc>192</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Wait  3</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>ContractTypes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>960</xloc>
+      <yloc>256</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Wait  4</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>CREATE DISTINCT (:Rangercontractpayment) nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>960</xloc>
+      <yloc>320</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Wait  5</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>CREATE DISTINCT (:Rangercontractstatus) nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>960</xloc>
+      <yloc>384</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Wait  6</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create (:Ticketstatus) Labels</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>960</xloc>
+      <yloc>448</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Wait  7</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create (:Ticketpriority) Labels</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>960</xloc>
+      <yloc>512</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Wait  8</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <CopyNr/>
+        <name>Create new :Ticketlabel nodes</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>960</xloc>
+      <yloc>592</yloc>
     </GUI>
   </transform>
   <transform_error_handling>

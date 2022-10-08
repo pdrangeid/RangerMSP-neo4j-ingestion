@@ -1,0 +1,358 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pipeline>
+  <info>
+    <name>RangerMSP-new-Crmasset-nodes</name>
+    <name_sync_with_filename>Y</name_sync_with_filename>
+    <description/>
+    <extended_description/>
+    <pipeline_version/>
+    <pipeline_type>Normal</pipeline_type>
+    <pipeline_status>0</pipeline_status>
+    <parameters>
+    </parameters>
+    <capture_transform_performance>N</capture_transform_performance>
+    <transform_performance_capturing_delay>1000</transform_performance_capturing_delay>
+    <transform_performance_capturing_size_limit>100</transform_performance_capturing_size_limit>
+    <created_user>-</created_user>
+    <created_date>2020/01/03 22:40:31.737</created_date>
+    <modified_user>admin</modified_user>
+    <modified_date>2020/01/05 12:32:41.443</modified_date>
+    <key_for_session_key>H4sIAAAAAAAAAAMAAAAAAAAAAAA=</key_for_session_key>
+    <is_key_private>N</is_key_private>
+  </info>
+  <notepads>
+  </notepads>
+  <order>
+    <hop>
+      <from>Get last :Rangerasset</from>
+      <to>Query RangerMSP Assets (assets) table</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Query RangerMSP Assets (assets) table</from>
+      <to>Create (:Rangerassets) nodes for new assets</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Query RangerMSP Assets (assets) table</from>
+      <to>Block until transforms finish</to>
+      <enabled>Y</enabled>
+    </hop>
+    <hop>
+      <from>Block until transforms finish</from>
+      <to>Set Manufacturers</to>
+      <enabled>Y</enabled>
+    </hop>
+  </order>
+  <transform>
+    <name>Block until transforms finish</name>
+    <type>BlockUntilTransformsFinish</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <transforms>
+      <transform>
+        <name>Create (:Rangerassets) nodes for new assets</name>
+      </transform>
+    </transforms>
+    <attributes/>
+    <GUI>
+      <xloc>400</xloc>
+      <yloc>176</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Create (:Rangerassets) nodes for new assets</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $assets as row
+WITH * WHERE row.RECID IS NOT NULL
+MATCH (rs:Recordstatus {state:row.STATUS})
+MATCH (a:Company {acctrecid:coalesce(row.ACCOUNTRECID,'None Provided')})
+MATCH (ac:Assetcategory {name:coalesce(trim(row.USER1),'None Provided')})
+MATCH (at:Assettype {name:coalesce(row.VALUE,'None Provided')})
+MATCH (np:Model {name:'None Provided'})
+OPTIONAL MATCH (pa:Rangerasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
+OPTIONAL MATCH (ib:Rangeremployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
+OPTIONAL MATCH (cb:Rangeremployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
+OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
+OPTIONAL MATCH (m:Model {name:trim(row.MODEL)})
+OPTIONAL MATCH (rs:Recordstatus {state:row.STATUS})
+OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
+OPTIONAL MATCH (ic:Assetcategory {name:coalesce(row.USER1,'None Provided')})
+OPTIONAL MATCH (at:Assettype {name:coalesce(row.VALUE,'None Provided')})
+//OPTIONAL MATCH (mfr:Manufacturer) WHERE toLower(row.MANUFACTURER) =toLower(mfr.name)// or toLower(row.MANUFACTURER) in mfr.aliases
+MERGE (ca:Rangerasset {recid:row.RECID})
+SET ca.name=trim(toLower(row.NAME)),ca.category=row.USER1,ca.manufacturer=row.MANUFACTURER,ca.model=row.MODEL,ca.assettag=row.ASSETCODE,ca.location=row.LOCATION,ca.description=row.DESCRIPTION,
+ca.createdon=apoc.date.parse(toString(row.CREATEDATE),'ms',"yyyy-MM-dd'T'HH:mm:ss","CST"),ca.updatedon=apoc.date.parse(toString(row.UPDATEDATE),'ms',"yyyy-MM-dd'T'HH:mm:ss","CST"),ca.type=row.VALUE,
+ca.expireson=apoc.date.parse(toString(row.WARRANTYEXPDATE),'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST')
+SET ca.mac=toLower(apoc.text.replace(row.USER3,"[^a-zA-Z\\d]","")),ca.serial=toLower(apoc.text.replace(apoc.text.replace(row.SERIALNO, "[^a-zA-Z\\d]",""),"VMware",""))
+FOREACH (ignoreMe in CASE WHEN a.name='None Provided' THEN [1] ELSE [] END | SET ca.company=row.ACCOUNTRECID)
+FOREACH (ignoreMe in CASE WHEN rs.state IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_STATE]-(rs))
+FOREACH (ignoreMe in CASE WHEN a.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_OF]->(a))
+FOREACH (ignoreMe in CASE WHEN ac.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:IN_CATEGORY]->(ac))
+FOREACH (ignoreMe in CASE WHEN at.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_TYPE]->(at))
+FOREACH (ignoreMe in CASE WHEN m.name IS NOT NULL THEN [1] ELSE [] END | MERGE (ca)-[:ASSET_IS_MODEL]->(m))
+FOREACH (ignoreMe in CASE WHEN c.name IS NOT NULL THEN [1] ELSE [] END |MERGE (ca)-[:ASSET_FOR]-(c))
+FOREACH (ignoreMe in CASE WHEN ib.name IS NOT NULL THEN [1] ELSE [] END |MERGE (ca)-[:INSTALLED_BY]-(ib))
+FOREACH (ignoreMe in CASE WHEN cb.name IS NOT NULL THEN [1] ELSE [] END |MERGE (ca)-[:CREATED_BY]-(cb))
+FOREACH (ignoreMe in CASE WHEN pa.name IS NOT NULL THEN [1] ELSE [] END |MERGE (pa)&lt;-[:CHILD_OF]-(ca))
+// SET date for last new ticket
+WITH datetime(row.CREATEDATE).epochmillis as lastnew
+MATCH (cdl:Rangerdataload {name:'RangerMSP'})
+FOREACH (ignoreMe in CASE WHEN lastnew > cdl.lastnewasset or cdl.lastnewasset IS NULL THEN [1] ELSE [] END | SET cdl.lastnewasset=lastnew)
+
+;</cypher>
+    <batch_size>250</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>assets</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>VALUE</parameter>
+        <field>VALUE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ACCOUNTRECID</parameter>
+        <field>ACCOUNTRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CONTACTRECID</parameter>
+        <field>CONTACTRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>PARENTASSETRECID</parameter>
+        <field>PARENTASSETRECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>STATUS</parameter>
+        <field>STATUS</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>NAME</parameter>
+        <field>NAME</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>SERIALNO</parameter>
+        <field>SERIALNO</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>ASSETCODE</parameter>
+        <field>ASSETCODE</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>LOCATION</parameter>
+        <field>LOCATION</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>INSTALLEDBY</parameter>
+        <field>INSTALLEDBY</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>DESCRIPTION</parameter>
+        <field>DESCRIPTION</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>MANUFACTURER</parameter>
+        <field>MANUFACTURER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>MODEL</parameter>
+        <field>MODEL</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>USER3</parameter>
+        <field>USER3</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEUSER</parameter>
+        <field>CREATEUSER</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>CREATEDATE</parameter>
+        <field>CREATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>UPDATEDATE</parameter>
+        <field>UPDATEDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>USER5</parameter>
+        <field>USER5</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>WARRANTYEXPDATE</parameter>
+        <field>WARRANTYEXPDATE</field>
+        <type>LocalDateTime</type>
+      </mapping>
+      <mapping>
+        <parameter>USER1</parameter>
+        <field>USER1</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>672</xloc>
+      <yloc>80</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Get last :Rangerasset</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
+WITH coalesce(cdl.lastnewasset,0) as lastnewasset,cdl
+WITH apoc.date.format(lastnewasset,'ms','yyyy-MM-dd HH:mm:ss.sss') AS lastnewasset
+//RETURN '1990-08-14 14:34:40.040' as lastnewasset
+RETURN lastnewasset
+;</cypher>
+    <batch_size/>
+    <read_only>Y</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>N</unwind>
+    <unwind_map/>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings/>
+    <returns>
+      <return>
+        <name>lastnewasset</name>
+        <type>String</type>
+        <source_type>String</source_type>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>128</xloc>
+      <yloc>80</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Query RangerMSP Assets (assets) table</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>N</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <lookup>Get last :Rangerasset</lookup>
+    <limit>0</limit>
+    <sql>select v.VALUE,a.RECID,a.ACCOUNTRECID,a.CONTACTRECID,a.PARENTASSETRECID,a.STATUS,a.NAME,a.SERIALNO,a.ASSETCODE,a.LOCATION,a.WARRANTYEXPDATE,a.INSTALLEDBY,CAST(a.DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,
+a.MANUFACTURER,a.MODEL,a.USER3,a.CREATEUSER,a.CREATEDATE,a.UPDATEDATE,a.USER1,a.USER5 from ValuesList as v INNER JOIN Assets AS a on v.RECID = a.ASSETTYPE where a.RECID is not null AND a.CREATEDATE > ? ${newassetrangerquery} ORDER BY a.CREATEDATE DESC</sql>
+    <variables_active>Y</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>400</xloc>
+      <yloc>80</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Set Manufacturers</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $assets as row
+MATCH (ca:Rangerasset {recid:row.RECID}) WHERE NOT (ca)-[:ASSET_MANUFACTURER]-(:Manufacturer)
+MATCH (mfr:Manufacturer) WHERE toLower(row.MANUFACTURER) =toLower(mfr.name) or toLower(row.MANUFACTURER) in mfr.aliases
+MERGE (ca)-[:ASSET_MANUFACTURER]-(mfr)
+;</cypher>
+    <batch_size>500</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>assets</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>RECID</parameter>
+        <field>RECID</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>MANUFACTURER</parameter>
+        <field>MANUFACTURER</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>672</xloc>
+      <yloc>176</yloc>
+    </GUI>
+  </transform>
+  <transform_error_handling>
+  </transform_error_handling>
+  <attributes/>
+</pipeline>

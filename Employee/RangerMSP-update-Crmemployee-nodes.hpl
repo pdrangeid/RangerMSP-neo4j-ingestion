@@ -24,18 +24,18 @@
   </notepads>
   <order>
     <hop>
-      <from>Query CommitCRM Contact (cards) table</from>
-      <to>Create (:Crmemployee) nodes for new contacts</to>
+      <from>Query RangerMSP Contact (cards) table</from>
+      <to>Create (:Rangeremployee) nodes for new contacts</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
       <from>Get Last Crmemployee</from>
-      <to>Query CommitCRM modified Crmemployee (cards) table</to>
+      <to>Query RangerMSP modified Crmemployee (cards) table</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM modified Crmemployee (cards) table</from>
-      <to>Edit (:Crmemployee) nodes for modified employees</to>
+      <from>Query RangerMSP modified Crmemployee (cards) table</from>
+      <to>Edit (:Rangeremployee) nodes for modified employees</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -45,12 +45,12 @@
     </hop>
     <hop>
       <from>Get Last Crmemployee</from>
-      <to>Query CommitCRM Contact (cards) table</to>
+      <to>Query RangerMSP Contact (cards) table</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <transform>
-    <name>Create (:Crmemployee) nodes for new contacts</name>
+    <name>Create (:Rangeremployee) nodes for new contacts</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -64,7 +64,7 @@
     <cypher>
 UNWIND $employees as row
 MATCH (r:Recordstatus{state:row.accountstatus})
-MERGE (c:Crmemployee {acctrecid:row.recid})
+MERGE (c:Rangeremployee {acctrecid:row.recid})
 ON CREATE SET c.company=row.company,c.title=row.title,c.email=trim(toLower(row.email1)),c.name=row.contact,c.createdon=datetime(row.createdate).epochmillis,c.updatedon=datetime(row.updatedate).epochmillis
 MERGE (c)-[:ACCOUNT_STATE]->(r)</cypher>
     <batch_size>500</batch_size>
@@ -152,7 +152,7 @@ MERGE (c)-[:ACCOUNT_STATE]->(r)</cypher>
     </GUI>
   </transform>
   <transform>
-    <name>Edit (:Crmemployee) nodes for modified employees</name>
+    <name>Edit (:Rangeremployee) nodes for modified employees</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -164,7 +164,7 @@ MERGE (c)-[:ACCOUNT_STATE]->(r)</cypher>
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $employees as row
-MATCH (c:Crmemployee {acctrecid:row.recid})
+MATCH (c:Rangeremployee {acctrecid:row.recid})
 OPTIONAL MATCH (r:Recordstatus {state:row.accountstatus})
 OPTIONAL MATCH (c)-[asr:ACCOUNT_STATE]-(ors:Recordstatus)
 FOREACH (ignoreMe in CASE WHEN (row.accountstatus &lt;&gt; ors.state) THEN [1] ELSE [] END | DELETE asr)
@@ -271,7 +271,7 @@ MERGE (c)-[:ACCOUNT_STATE]->(r)
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (e:Crmemployee)-[r:WORKS_FOR]-(:Company) where (e)--(:Recordstatus {state:'N'})
+    <cypher>MATCH (e:Rangeremployee)-[r:WORKS_FOR]-(:Company) where (e)--(:Recordstatus {state:'N'})
 DELETE r
 ;
 </cypher>
@@ -305,8 +305,8 @@ DELETE r
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
-OPTIONAL MATCH (l:Crmemployee)
+    <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
+OPTIONAL MATCH (l:Rangeremployee)
 WITH max(coalesce(l.createdon,0)) as lastnewemployee, max(coalesce(l.updatedon,0)) as lastmodifiedemployee,cdl
 WITH COLLECT(lastnewemployee)+COLLECT(lastmodifiedemployee)+cdl.crminit as tstamps
 UNWIND tstamps as ts
@@ -431,7 +431,7 @@ RETURN lastmodifiedemployee
     </GUI>
   </transform>
   <transform>
-    <name>MATCH active bluenetinc :Crmemployees and create [:WORKS_FOR] relationship</name>
+    <name>MATCH active bluenetinc :Rangeremployees and create [:WORKS_FOR] relationship</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -443,7 +443,7 @@ RETURN lastmodifiedemployee
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>MATCH (a:Company {acctrecid:'CRD6UWAT3SRJXHOT6F2C'})
-MATCH (e:Crmemployee)--(:Recordstatus {state:'A'}) where not (e)-[:WORKS_FOR]-(a) and e.email ends with 'bluenetinc.com'
+MATCH (e:Rangeremployee)--(:Recordstatus {state:'A'}) where not (e)-[:WORKS_FOR]-(a) and e.email ends with 'bluenetinc.com'
 MERGE (e)-[:WORKS_FOR]->(a)
 ;
 </cypher>
@@ -466,7 +466,7 @@ MERGE (e)-[:WORKS_FOR]->(a)
     </GUI>
   </transform>
   <transform>
-    <name>MATCH inactive bluenetinc :Crmemployees and create [:FORMERLY_WORKED_FOR] relationship</name>
+    <name>MATCH inactive bluenetinc :Rangeremployees and create [:FORMERLY_WORKED_FOR] relationship</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -478,7 +478,7 @@ MERGE (e)-[:WORKS_FOR]->(a)
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>MATCH (a:Company {acctrecid:'CRD6UWAT3SRJXHOT6F2C'})
-MATCH (e:Crmemployee)--(:Recordstatus {state:'N'}) where not (e)-[:FORMERLY_WORKED_FOR]-(a) and e.email ends with 'bluenetinc.com'
+MATCH (e:Rangeremployee)--(:Recordstatus {state:'N'}) where not (e)-[:FORMERLY_WORKED_FOR]-(a) and e.email ends with 'bluenetinc.com'
 MERGE (e)-[:FORMERLY_WORKED_FOR]->(a)
 ;
 </cypher>
@@ -501,7 +501,7 @@ MERGE (e)-[:FORMERLY_WORKED_FOR]->(a)
     </GUI>
   </transform>
   <transform>
-    <name>Query CommitCRM Contact (cards) table</name>
+    <name>Query RangerMSP Contact (cards) table</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -524,7 +524,7 @@ MERGE (e)-[:FORMERLY_WORKED_FOR]->(a)
     </GUI>
   </transform>
   <transform>
-    <name>Query CommitCRM modified Crmemployee (cards) table</name>
+    <name>Query RangerMSP modified Crmemployee (cards) table</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>

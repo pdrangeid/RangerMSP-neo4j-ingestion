@@ -769,7 +769,7 @@
     <error_ignored>N</error_ignored>
     <ignore_flag_field/>
     <lookup>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <key>
         <name>recid</name>
@@ -808,7 +808,7 @@
     <error_ignored>N</error_ignored>
     <ignore_flag_field/>
     <lookup>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <key>
         <name>recid</name>
@@ -847,7 +847,7 @@
     <error_ignored>N</error_ignored>
     <ignore_flag_field/>
     <lookup>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <key>
         <name>recid</name>
@@ -886,7 +886,7 @@
     <error_ignored>N</error_ignored>
     <ignore_flag_field/>
     <lookup>
-      <schema>//edc-commitcrm.tdonline.com/CommitCRM/Db</schema>
+      <schema>//edc-RangerMSP.tdonline.com/RangerMSP/Db</schema>
       <table>Tickets.adt</table>
       <key>
         <name>recid</name>
@@ -1108,7 +1108,7 @@ SET t.duedate=rt.dateDue
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $tickets as rt
-MATCH (t:Ticket {recid:rt.recid})-[]-(c:Crmcontract)
+MATCH (t:Ticket {recid:rt.recid})-[]-(c:Rangercontract)
 WITH *,apoc.date.format(coalesce(t.createdon,0),'ms','yyyy-MM-dd','CST') as Created_on,t.createdon+432800000 as duetime WHERE c.code IS NULL or (not toLower(c.code) contains 'tdev' and not toLower(c.code) contains 'mdev')
 WITH *,apoc.date.format(duetime,'ms','yyyy-MM-dd HH:mm:ss.sss','CST') as duedate
 WITH *,datetime(replace(duedate,' ','T')).dayOfWeek as day
@@ -1205,7 +1205,7 @@ RETURN t.recid as recid,DueDate as duedate,DateDue,toInteger(right(t.ticketnumbe
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $tickets as rt
-MATCH (t:Ticket {recid:rt.recid})-[]-(c:Crmcontract)
+MATCH (t:Ticket {recid:rt.recid})-[]-(c:Rangercontract)
 WITH *,apoc.date.format(coalesce(t.createdon,0),'ms','yyyy-MM-dd','CST') as Created_on,t.createdon+172800000 as duetime WHERE c.code IS NULL or (not toLower(c.code) contains 'tdev' and not toLower(c.code) contains 'mdev')
 WITH *,apoc.date.format(duetime,'ms','yyyy-MM-dd HH:mm:ss.sss','CST') as duedate
 WITH *,datetime(replace(duedate,' ','T')).dayOfWeek as day
@@ -1302,7 +1302,7 @@ RETURN t.recid as recid,DueDate as duedate,DateDue,toInteger(right(t.ticketnumbe
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $tickets as rt
-MATCH (t:Ticket {recid:rt.recid})-[]-(c:Crmcontract)
+MATCH (t:Ticket {recid:rt.recid})-[]-(c:Rangercontract)
 WITH *,apoc.date.format(coalesce(t.createdon,0),'ms','yyyy-MM-dd','CST') as Created_on,t.createdon as duetime WHERE c.code IS NULL or (not toLower(c.code) contains 'tdev' and not toLower(c.code) contains 'mdev')
 WITH *,apoc.date.format(duetime,'ms','yyyy-MM-dd HH:mm:ss.sss','CST') as duedate
 WITH *,datetime(replace(duedate,' ','T')).dayOfWeek as day
@@ -1400,7 +1400,7 @@ RETURN t.recid as recid,DueDate as duedate,DateDue,toInteger(right(t.ticketnumbe
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $tickets as rt
-MATCH (t:Ticket {recid:rt.recid})-[]-(c:Crmcontract)
+MATCH (t:Ticket {recid:rt.recid})-[]-(c:Rangercontract)
 WITH *,apoc.date.format(coalesce(t.createdon,0),'ms','yyyy-MM-dd','CST') as Created_on,t.createdon+1209600000 as duetime WHERE c.code IS NULL or (not toLower(c.code) contains 'tdev' and not toLower(c.code) contains 'mdev')
 WITH *,apoc.date.format(duetime,'ms','yyyy-MM-dd HH:mm:ss.sss','CST') as duedate
 WITH *,datetime(replace(duedate,' ','T')).dayOfWeek as day

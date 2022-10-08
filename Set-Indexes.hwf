@@ -26,8 +26,8 @@
       <weekDay>1</weekDay>
       <DayOfMonth>1</DayOfMonth>
       <parallel>N</parallel>
-      <xloc>50</xloc>
-      <yloc>50</yloc>
+      <xloc>96</xloc>
+      <yloc>192</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -38,13 +38,13 @@
       <connection>${graphdb-ds}</connection>
       <script>//SECTION Create RangerMSP constraints 
 
-CALL apoc.schema.assert(null,{Assetcategory:['name'],Assettype:['name'],Catalias:['name'],Crmcontractpayment:['name'],Crmprojectstatus:['name'],Cmkhost:['name']},False)
+CALL apoc.schema.assert(null,{Assetcategory:['name'],Assettype:['name'],Catalias:['name'],Rangercontractpayment:['name'],Rangerprojectstatus:['name']},False)
 ;
 CALL apoc.schema.assert(null,{Manufacturer:['name'],Mfralias:['name'],Model:['name'],Ticketlabel:['name'],Ticketpriority:['name'],Ticketstatus:['name']},False)
 ;
-CALL apoc.schema.assert(null,{Company:['acctrecid'],Contact:['acctrecid'],Crmemployee:['acctrecid']},False)
+CALL apoc.schema.assert(null,{Company:['acctrecid'],Contact:['acctrecid'],Rangeremployee:['acctrecid']},False)
 ;
-CALL apoc.schema.assert(null,{Crmasset:['recid'],Crmcontract:['recid'],Crmcharge:['recid'],Crmitem:['recid'],Ticket:['recid'],Opportunity:['recid']},False)
+CALL apoc.schema.assert(null,{Rangerasset:['recid'],Rangercontract:['recid'],Rangercharge:['recid'],Rangeritem:['recid'],Ticket:['recid'],Opportunity:['recid']},False)
 ;
 CALL apoc.schema.assert(null,{Oppstage:['id'],Oppstatus:['id']},False)
 ;
@@ -53,25 +53,25 @@ CALL apoc.schema.assert(null,{Ticket:['ticketnumber']},False)
 
 
 //SECTION Create RangerMSP Indexes
-CALL apoc.schema.assert({Crmitem:['number']},null,False)
+CALL apoc.schema.assert({Rangeritem:['number']},null,False)
 ;
 CALL apoc.schema.assert({Ticket:['service'],Ticket:['host'],Ticket:['problem'],Ticket:['closedon'],Ticket:['manager']},null,False)
 ;
 CALL apoc.schema.assert({Opportunity:['description']},null,False)
 ;
-CALL apoc.schema.assert({Crmcharge:['createdon']},null,False)
+CALL apoc.schema.assert({Rangercharge:['createdon']},null,False)
 ;
-CALL apoc.schema.assert({Crmcontract:['code','name','seqid']},null,False)
+CALL apoc.schema.assert({Rangercontract:['code','name','seqid']},null,False)
 ;
-CALL apoc.schema.assert({Crmasset:['name'],Crmemployee:['name'],Crmasset:['mac'],Crmasset:['serial'],Auvikdevice:['macaddress'],Company:['name'],Contact:['email'],Contact:['name'],Cmkservice:['name'],Oppkind:['name'],Oppreason:['name'],Oppsource:['name']},null,False)
+CALL apoc.schema.assert({Rangerasset:['name'],Rangeremployee:['name'],Rangerasset:['mac'],Rangerasset:['serial'],Company:['name'],Contact:['email'],Contact:['name'],Cmkservice:['name'],Oppkind:['name'],Oppreason:['name'],Oppsource:['name']},null,False)
 ;
-CALL apoc.schema.assert({Crmitem:['description']},null,False)
+CALL apoc.schema.assert({Rangeritem:['description']},null,False)
 ;
 </script>
       <replace_variables>N</replace_variables>
       <parallel>N</parallel>
-      <xloc>224</xloc>
-      <yloc>48</yloc>
+      <xloc>480</xloc>
+      <yloc>192</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -81,29 +81,21 @@ CALL apoc.schema.assert({Crmitem:['description']},null,False)
       <attributes/>
       <connection>${graphdb-ds}</connection>
       <script>//SECTION Create loader stats/metrix node
-MERGE (cdl:Crmdataload {name:'CommitCRM'})
+MERGE (cdl:Rangerdataload {name:'RangerMSP'})
 ON CREATE set cdl.crminit=timestamp()
 ;
 
-//***EDIT-HERE***
-// USE THIS to set the MAXIMUM number of days and HISTORY notes to load (if you want to limit how much data gets ingested into the graph)
-MATCH (cdl:Crmdataload {name:'CommitCRM'})
-with cdl,apoc.date.add(timestamp(),'ms',-547, 'd') as oldestcharge
-set cdl.chargelimiter=oldestcharge
-with cdl,apoc.date.add(timestamp(),'ms',-100, 'd') as oldesthistory
-set cdl.historylimiter=oldesthistory
-;
 
 //SECTION Create Recordstatus Node Labels
 MERGE (act:Recordstatus {name:'Active',state:'A'})
 MERGE (nact:Recordstatus {name:'InActive',state:'N'})
 ;
 
-//SECTION Create RangerMSP (:Crmasset) node labels
+//SECTION Create RangerMSP (:Rangerasset) node labels
 MERGE (m:Model {name:'None Provided'})
 MERGE (v:Vendor {name:'None Available'})
 MERGE (cat:Catalias {name:'None Provided'})
-MERGE (ha:Crmhaas {name:'HaaS Asset'})
+MERGE (ha:Rangerhaas {name:'HaaS Asset'})
 
 //***EDIT-HERE*** If these don't match your Opportunity status codes
 //SECTION Create OppStatus
@@ -114,7 +106,7 @@ MERGE (:Oppstatus {id:4,name:'Cancelled/On-Hold'})
 ;
 
 //SECTION Create Ticket node LABELS:
-MERGE (nomgr:Crmemployee {name:'None Provided',acctrecid:'None Provided'})
+MERGE (nomgr:Rangeremployee {name:'None Provided',acctrecid:'None Provided'})
 MERGE (nocmp:Company {name:'None Provided',acctrecid:'None Provided'})
 MERGE (nocon:Contact {name:'None Provided',acctrecid:'None Provided'})
 MERGE (nosrv:Ticketsource {name:'None Provided'})
@@ -125,34 +117,34 @@ MERGE (tc:Ticketcategory {name:'None Provided'})
 
 //***EDIT-HERE*** If these don't match your contract status codes
 //SECTION Create RangerMSP Contract Status Node Labels:
-MERGE (nocontr:Crmcontract {name:'None Provided',recid:'None Provided'})
-MERGE (csnp:Crmcontractstatus {name:'Not Provided',value:'NP'})
-MERGE (csa:Crmcontractstatus {name:'Active',value:'A'})
-MERGE (csc:Crmcontractstatus {name:'Cancelled',value:'C'})
-MERGE (css:Crmcontractstatus {name:'Suspended',value:'S'})
-MERGE (cst:Crmcontractstatus {name:'Completed',value:'T'})
+MERGE (nocontr:Rangercontract {name:'None Provided',recid:'None Provided'})
+MERGE (csnp:Rangercontractstatus {name:'Not Provided',value:'NP'})
+MERGE (csa:Rangercontractstatus {name:'Active',value:'A'})
+MERGE (csc:Rangercontractstatus {name:'Cancelled',value:'C'})
+MERGE (css:Rangercontractstatus {name:'Suspended',value:'S'})
+MERGE (cst:Rangercontractstatus {name:'Completed',value:'T'})
 ;
 
 //***EDIT-HERE*** Ranger doesn't have a Contract Category - I create one in the graph by matching codes/keywords in another pipeline.
 // You can edit these to suit your needs, or remove this section if it isn't applicable for you.
 //SECTION Create RangerMSP Contract Category Node Labels:
-MERGE (csnp:Crmcontractcat {name:'Not Provided'})
-MERGE (:Crmcontractcat {name:'Account Management'})
-MERGE (:Crmcontractcat {name:'Backup Plan'})
-MERGE (:Crmcontractcat {name:'Device Plan'})
-MERGE (:Crmcontractcat {name:'HaaS Plan'})
-MERGE (:Crmcontractcat {name:'Internal Operations'})
-MERGE (:Crmcontractcat {name:'Microsoft Azure'})
-MERGE (:Crmcontractcat {name:'Microsoft CSP'})
-MERGE (:Crmcontractcat {name:'Microsoft SPLA'})
-MERGE (:Crmcontractcat {name:'Network Plan'})
-MERGE (:Crmcontractcat {name:'Onboarding'})
-MERGE (:Crmcontractcat {name:'Out of Scope'})
-MERGE (:Crmcontractcat {name:'Private Cloud'})
-MERGE (:Crmcontractcat {name:'Security Plan'})
-MERGE (:Crmcontractcat {name:'Statement of Work'})
-MERGE (:Crmcontractcat {name:'User Awareness Plan'})
-MERGE (:Crmcontractcat {name:'User Plan'})
+MERGE (csnp:Rangercontractcat {name:'Not Provided'})
+MERGE (:Rangercontractcat {name:'Account Management'})
+MERGE (:Rangercontractcat {name:'Backup Plan'})
+MERGE (:Rangercontractcat {name:'Device Plan'})
+MERGE (:Rangercontractcat {name:'HaaS Plan'})
+MERGE (:Rangercontractcat {name:'Internal Operations'})
+MERGE (:Rangercontractcat {name:'Microsoft Azure'})
+MERGE (:Rangercontractcat {name:'Microsoft CSP'})
+MERGE (:Rangercontractcat {name:'Microsoft SPLA'})
+MERGE (:Rangercontractcat {name:'Network Plan'})
+MERGE (:Rangercontractcat {name:'Onboarding'})
+MERGE (:Rangercontractcat {name:'Out of Scope'})
+MERGE (:Rangercontractcat {name:'Private Cloud'})
+MERGE (:Rangercontractcat {name:'Security Plan'})
+MERGE (:Rangercontractcat {name:'Statement of Work'})
+MERGE (:Rangercontractcat {name:'User Awareness Plan'})
+MERGE (:Rangercontractcat {name:'User Plan'})
 ;
 
 // SECTION Create (:Billkind) and (:Billstage) nodes
@@ -300,7 +292,7 @@ MERGE (cc6)-[:ALIAS_OF]->(ac)
 
 MERGE (ac:Assetcategory {name:'Hardware'})
 with ac
-MATCH (cc:Catalias) where cc.name = 'Notebook' or cc.name contains 'Workstation' or cc.name contains 'Zero' or cc.name contains 'Switch' or cc.name contains 'Access Point'
+MATCH (cc:Catalias) where cc.name = 'Notebook' or cc.name contains 'Laptop' or cc.name contains 'Workstation' or cc.name contains 'Zero' or cc.name contains 'Switch' or cc.name contains 'Access Point'
 or cc.name contains 'Thin Client' or cc.name contains 'Backup Appliance' or cc.name contains 'Mini PC' or cc.name contains 'Monitor' or cc.name contains 'Storage System'
 or cc.name = 'PC' or cc.name contains 'Phone/VoIP' or cc.name contains 'Printer' or cc.name contains 'Pulled-Gear' or cc.name contains 'Tablet'
 MERGE (cc)-[:ALIAS_OF]->(ac)
@@ -311,7 +303,6 @@ MERGE (cc:Catalias {name:'Service Subscription'})
 MERGE (cc)-[:ALIAS_OF]->(ac)
 MERGE (cc2:Catalias {name:'Software Subscription'})
 MERGE (cc2)-[:ALIAS_OF]->(ac)
-;
 MERGE (cc3:Catalias {name:'Certificates'})
 MERGE (cc3)-[:ALIAS_OF]->(ac)
 MERGE (cc4:Catalias {name:'Domain Registration'})
@@ -338,10 +329,11 @@ MERGE (ac:Assetcategory {name:'Reclaimed Hardware'})
 ;
 
 
-//SECTION Create (:Assettype) and (:Assetclass)
+//SECTION Create (:Assettype) and (:Assetclass) -- EDIT THIS for your organization
 MERGE (at:Assettype {name:'None Provided'})
 ;
 
+// Asset types that belong to INFRASTRUCTURE 
 MERGE (ac:Assetclass {name:'Infrastructure'})
 MERGE (at:Assettype {name:'Azure'})
 MERGE (at)-[:OF_CLASS]->(ac)
@@ -386,7 +378,7 @@ MERGE (at:Assettype {name:'IPMI'})
 MERGE (at)-[:OF_CLASS]->(ac)
 ;
 
-
+// Asset types that belong to Endpoint
 MERGE (ac:Assetclass {name:'Endpoint'})
 MERGE (at:Assettype {name:'Desktop'})
 MERGE (at)-[:OF_CLASS]->(ac)
@@ -405,12 +397,15 @@ MERGE (at)-[:OF_CLASS]->(ac)
 WITH ac
 MERGE (at:Assettype {name:'Notebook'})
 MERGE (at)-[:OF_CLASS]->(ac)
+WITH ac
+MERGE (at:Assettype {name:'Laptop'})
+MERGE (at)-[:OF_CLASS]->(ac)
 ;
 
-
+// Asset types that belong to Peripheral
 MERGE (ac:Assetclass {name:'Peripheral'})
 MERGE (at:Assettype {name:'Display'})
-MERGE (at)-[:OF_CLASS]->(ac)
+MERGE (at)-[:OF_CLASS]-&gt;(ac)
 WITH ac
 MERGE (at:Assettype {name:'Peripheral'})
 MERGE (at)-[:OF_CLASS]->(ac)
@@ -473,14 +468,14 @@ MERGE (at:Assettype {name:'Zero Client'})
 ;
 
 
-//SECTION MERGE (li:Crmitem)
-MATCH (cdl:Crmdataload {name:'CommitCRM'})
+//SECTION MERGE (li:Rangeritem)
+MATCH (cdl:Rangerdataload {name:'RangerMSP'})
 set cdl.iteminit=timestamp()
 set cdl.itemrefresh=timestamp()
 ;
 
-//SECTION MERGE (li:Crmcharge)
-MATCH (cdl:Crmdataload {name:'CommitCRM'})
+//SECTION MERGE (li:Rangercharge)
+MATCH (cdl:Rangerdataload {name:'RangerMSP'})
 set cdl.chargeinit=timestamp()
 set cdl.chargerefresh=timestamp()
 ;
@@ -489,169 +484,43 @@ set cdl.chargerefresh=timestamp()
 MERGE (itgf:Itemtypegroup {name:'Labor'}) SET itgf.code='F'
 MERGE (itgx:Itemtypegroup {name:'Expense'}) SET itgx.code='X'
 MERGE (itgp:Itemtypegroup {name:'Part'}) SET itgp.code='P'
-;
-
-
-
-
-</script>
+;</script>
       <replace_variables>N</replace_variables>
       <parallel>N</parallel>
-      <xloc>464</xloc>
-      <yloc>48</yloc>
+      <xloc>720</xloc>
+      <yloc>192</yloc>
       <attributes_hac/>
     </action>
     <action>
-      <name>3rd Party Indexes</name>
+      <name>Set-RangerMSP-Variables</name>
       <description/>
-      <type>NEO4J_CYPHER_SCRIPT</type>
+      <type>PIPELINE</type>
       <attributes/>
-      <connection>${graphdb-ds}</connection>
-      <script>
-// Create 3rd party (and custom BlueNet) Indexes and constraints
-
-//Adsi and Microsoft 365
-
-CALL apoc.schema.assert(null,{Adsiuser:['guid'],M365mailbox:['guid']},False)
-;
-CALL apoc.schema.assert({Adsiuser:['samaccountname'],Adsiuser:['upn'],Adsiuser:['addresses'],M365mailbox:['upn'],M365mailbox:['addresses'],M365mailbox:['primarysmtp'],M365product:['stringid'],M365product:['primarysmtp'],M365product:['addresses'],M365product:['enabled']},null,False)
-;
-CALL apoc.schema.assert({Accepteddomain:['acctrecid'],Accepteddomain:['name']},null,False)
-;
-
-CALL apoc.schema.assert({Reportingcontact:['upn'],Reportingcontact:['company'],Reportingcontact:['name']},null,False)
-;
-CALL apoc.schema.assert({Reportingasset:['cmkmonitor'],Reportingasset:['recid'],Reportingasset:['name'],Reportingasset:['company']},null,False)
-;
-CALL apoc.schema.assert(null,{Reportingasset:['recid']},False)
-;
-
-CALL apoc.schema.assert({M365device:['name'],M365device:['guid'],M365device:['acctrecid'],M365device:['updatedon'],M365device:['owner']},null,False)
-;
-CALL apoc.schema.assert({Trustlevel:['name'],Trusttype:['name'],Ostype:['name']},null,False)
-;
-
-//BlueNet
-CALL apoc.schema.assert(null,{Clientdomain:['name']},False)
-;
-CALL apoc.schema.assert(null,{Reportingcontact:['upn']},False)
-;
-CALL apoc.schema.assert(null,{Publicdomains:['names']},False)
-;
-
-//Checkmk
-CALL apoc.schema.assert(null,{Cmkpath:['name'],Cmkconnection:['name'],Cmknodetype:['name'],Cmkhostgroup:['name'],Cmkhosttag:['name'],Cmkhost:['name'],Cmksite:['name']},False)
-;
-
-// Connectwise Control (Screenconnect)
-CALL apoc.schema.assert(null,{Screenconnect:['id']},False)
-;
-CALL apoc.schema.assert({Screenconnect:['serial'],Screenconnect:['name'],Screenconnect:['acctrecid'],Screenconnect:['domain'],Screenconnect:['client']},null,False)
-;
-
-//DropSuite
-CALL apoc.schema.assert(null,{Dsseat:['email']},False)
-;
-
-
-//Ironscales
-CALL apoc.schema.assert(null,{Isuser:['email'],Istag:['name']},False)
-;
-
-
-//NinjaOne RMM
-CALL apoc.schema.assert(null,{Rmmdevice:['id'],Rmmpatch:['id']},False)
-;
-CALL apoc.schema.assert({Rmmdevice:['lastuser'],Rmmdevice:['serial'],Rmmdevice:['name'],Rmmdevice:['dnsname']},null,False)
-;
-
-//Quotewerks
-CALL apoc.schema.assert(null,{Qwdocument:['number']},False)
-;
-CALL apoc.schema.assert(null,{Qwquotestatus:['name'],Qwdocstatus:['name'],Qwtype:['name']},False)
-;
-CALL apoc.schema.assert(null,{Qwdocument:['number']},False)
-;
-CALL apoc.schema.assert({Qwdocument:['customer']},null,False)
-;
-</script>
-      <replace_variables>N</replace_variables>
+      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Set-RangerMSP-Parameters.hpl</filename>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <create_parent_folder>N</create_parent_folder>
+      <run_configuration>local</run_configuration>
+      <parameters>
+        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>
       <parallel>N</parallel>
-      <xloc>656</xloc>
-      <yloc>48</yloc>
-      <attributes_hac/>
-    </action>
-    <action>
-      <name>3rd Party pre-requisites</name>
-      <description/>
-      <type>NEO4J_CYPHER_SCRIPT</type>
-      <attributes/>
-      <connection>${graphdb-ds}</connection>
-      <script>// Create Blue Net Custom Labels
-MERGE (:Bluenetexpress {name:'Blue Net Express'})
-;
-
-//SECTION Create M365product Node Labels
-MERGE (n:M365product {stringid:'None Provided',guid:'None Provided'})
-SET n.url='https://docs.microsoft.com/en-us/azure/active-directory/enterprise-users/licensing-service-plan-reference',n.name='None Provided'
-;
-
-// Set LIMITERS
-MATCH (cdl:Crmdataload {name:'CommitCRM'})
-SET cdl.ticketcount=101000
-SET cdl.datarefresh=timestamp()
-;
-
-//SECTION Create Monitoring Analysis Node Labels:
-MERGE (am:Monitoring {value:'A'}) SET am.name='Actively Monitored'
-MERGE (cmk:Monitoring {value:'Y'}) SET cmk.name='CMK Monitoring Required'
-MERGE (rmm:Monitoring {value:'NR'}) SET rmm.name='Ninja RMM Required'
-MERGE (nomon:Monitoring {value:'N'}) SET nomon.name='No Monitoring Required'
-MERGE (monreq:Monitoring {value:'R'}) SET monreq.name='Monitoring Required'
-MERGE (cmkmis:Monitoring {value:'-Y'}) SET cmkmis.name='Missing from CheckMK'
-MERGE (rmspmis:Monitoring {value:'-C'}) SET rmspmis.name='Missing from RangerMSP'
-MERGE (rmmmis:Monitoring {value:'-N'}) SET rmmmis.name='Missing from Ninja'
-MERGE (nomonlbl:Monitoring {name:'No Monitor Label',value:'-NML'})
-;
-
-// SECTION Create CheckMK pre-req nodes
-MERGE (cmks:Cmksite {name:'None'})
-MERGE (cmkpath:Cmkpath {name:'None'})
-MERGE (conn:Cmkconnection {name:'None'})
-MERGE (cmknt:Cmknodetype {name:'None'})
-MERGE (ch:Cmkhost {name:'None'})
-MERGE (cmkhg:Cmkhostgroup {name:'None'})
-MERGE (ssc:Servicestate {name:'Critical',state:'CRIT'})
-MERGE (ssu:Servicestate {name:'Unknown',state:'UNKN'})
-MERGE (ssw:Servicestate {name:'Warning',state:'WARN'})
-MERGE (hsun:Hoststate {name:'Unreachable',state:'UNREACH'})
-MERGE (hsdwn:Hoststate {name:'Down',state:'DOWN'})
-MERGE (prba:Problemack {name:'Acknowledged'})
-MERGE (prbn:Problemack {name:'Unacknowledged'})
-;
-
-//CLEAN UP JOB LOGGING
-MATCH (l:N4jlogging) WHERE l.jobname&lt;&gt;l.transname// and l.jobstatus &lt;&gt; 'finished'
-MATCH (l)-[r:LAST_JOB_SUCCESS]-(s:N4jlogging {name:'Success'})
-WITH r WHERE r.completed&lt;timestamp()-166400000
-DELETE r
-;
-</script>
-      <replace_variables>N</replace_variables>
-      <parallel>N</parallel>
-      <xloc>848</xloc>
-      <yloc>48</yloc>
+      <xloc>928</xloc>
+      <yloc>192</yloc>
       <attributes_hac/>
     </action>
   </actions>
   <hops>
-    <hop>
-      <from>Start</from>
-      <to>Build RangerMSP object Indexes</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
-    </hop>
     <hop>
       <from>Build RangerMSP object Indexes</from>
       <to>RangerMSP Pre-requisites</to>
@@ -660,15 +529,15 @@ DELETE r
       <unconditional>N</unconditional>
     </hop>
     <hop>
-      <from>RangerMSP Pre-requisites</from>
-      <to>3rd Party Indexes</to>
+      <from>Start</from>
+      <to>Build RangerMSP object Indexes</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
-      <unconditional>N</unconditional>
+      <unconditional>Y</unconditional>
     </hop>
     <hop>
-      <from>3rd Party Indexes</from>
-      <to>3rd Party pre-requisites</to>
+      <from>RangerMSP Pre-requisites</from>
+      <to>Set-RangerMSP-Variables</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>

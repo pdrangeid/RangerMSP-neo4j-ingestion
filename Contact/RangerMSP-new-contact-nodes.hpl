@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pipeline>
   <info>
-    <name>RangerMSP-update-company-nodes</name>
+    <name>RangerMSP-new-contact-nodes</name>
     <name_sync_with_filename>Y</name_sync_with_filename>
     <description/>
     <extended_description/>
@@ -24,18 +24,18 @@
   </notepads>
   <order>
     <hop>
-      <from>Query RangerMSP modified Company (cards) table</from>
-      <to>Edit (:Company) nodes for modified companies</to>
+      <from>Query RangerMSP Contact (cards) table</from>
+      <to>Create (:Contact) nodes for new contacts</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Get last :Company</from>
-      <to>Query RangerMSP modified Company (cards) table</to>
+      <from>Get last Contact</from>
+      <to>Query RangerMSP Contact (cards) table</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <transform>
-    <name>Edit (:Company) nodes for modified companies</name>
+    <name>Create (:Contact) nodes for new contacts</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -46,36 +46,18 @@
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $companies as row
-MATCH (a:Company {acctrecid:row.recid})
-OPTIONAL MATCH (dc1:Rangercontract {recid:row.bcrecid})
-OPTIONAL MATCH (x:Bluenetexpress {name:'Blue Net Express'})
-OPTIONAL MATCH (m:Rangeremployee {acctrecid:row.assigncardid})
-OPTIONAL MATCH (dc:Rangercontract {recid:coalesce(row.bcrecid,'None Provided')})
-OPTIONAL MATCH (r:Recordstatus {state:row.accountstatus})
-OPTIONAL MATCH (a)-[asr:ACCOUNT_STATE]-(ors:Recordstatus)
-OPTIONAL MATCH (a)-[dcr:USES_DEFAULT_CONTRACT]-(odc:Rangercontract)
-OPTIONAL MATCH (a)-[sbr:SERVICED_BY]->(x)
-OPTIONAL MATCH (a)-[amr:ACCOUNT_MANAGER]->(oam)
-FOREACH (ignoreMe in CASE WHEN (row.accountstatus &lt;&gt; ors.state) THEN [1] ELSE [] END | DELETE asr)
-FOREACH (ignoreMe in CASE WHEN (row.bcrecid &lt;&gt; odc.recid) THEN [1] ELSE [] END | DELETE dcr)
-FOREACH (ignoreMe in CASE WHEN (row.assigncardid &lt;&gt; oam.acctrecid) THEN [1] ELSE [] END | DELETE amr)
-FOREACH (ignoreMe in CASE WHEN not (toLower(row.cardid3) contains 'express') THEN [1] ELSE [] END | DELETE sbr)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.city,'isnull') &lt;&gt; coalesce(a.city,'isnull') THEN [1] ELSE [] END | SET a.city=row.city)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.company,'isnull') &lt;&gt; coalesce(a.name,'isnull') THEN [1] ELSE [] END | SET a.name=row.company)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.createdate,'isnull') &lt;&gt; coalesce(a.createdon,'isnull') THEN [1] ELSE [] END | SET a.createdon=datetime(row.createdate).epochmillis)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.updatedate,'isnull') &lt;&gt; coalesce(a.updatedon,'isnull') THEN [1] ELSE [] END | SET a.updatedon=datetime(row.updatedate).epochmillis)
-FOREACH (ignoreMe in CASE WHEN coalesce(row.bcrecid,'isnull') &lt;&gt; coalesce(a.defaultcontract,'isnull') THEN [1] ELSE [] END | SET a.defaultcontract=row.bcrecid)
-FOREACH (ignoreMe in CASE WHEN dc.recid IS NOT NULL THEN [1] ELSE [] END | MERGE (a)-[:USES_DEFAULT_CONTRACT]->(dc))
-FOREACH (ignoreMe in CASE WHEN (toLower(row.cardid3) contains 'express') AND x.name IS NOT NULL THEN [1] ELSE [] END | MERGE (a)-[:SERVICED_BY]-&gt;(x))
-FOREACH (ignoreMe in CASE WHEN m.name IS NOT NULL THEN [1] ELSE [] END | MERGE (a)-[:ACCOUNT_MANAGER]->(m))
-MERGE (a)-[:ACCOUNT_STATE]->(r)
-// SET date for last modified company
-WITH datetime(row.updatedate).epochmillis as lastmodified
-MATCH (cdl:Rangerdataload {name:'RangerMSP'})
-FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedcompany or cdl.lastmodifiedcompany IS NULL THEN [1] ELSE [] END | SET cdl.lastmodifiedcompany=lastmodified)
-;
-</cypher>
+    <cypher>UNWIND $contacts as row
+MATCH (r:Recordstatus{state:row.subcontactstatus})
+OPTIONAL MATCH (cu:Rangeremployee {acctrecid:row.createuserid})
+MERGE (c:Contact {acctrecid:row.recid})
+ON CREATE SET c.company=row.company,c.title=row.title,c.email=trim(toLower(row.email1)),c.name=row.contact,c.createdon=datetime(row.createdate).epochmillis,c.updatedon=datetime(row.updatedate).epochmillis,c.createuser=cu.name
+MERGE (c)-[:ACCOUNT_STATE]->(r)
+WITH r,c,row
+MATCH (a:Company {acctrecid:row.assigncardid})
+FOREACH (ignoreMe in CASE WHEN r.state='A' THEN [1] ELSE [] END | MERGE (c)-[:WORKS_FOR]->(a))
+FOREACH (ignoreMe in CASE WHEN r.state='N' THEN [1] ELSE [] END | MERGE (c)-[:FORMERLY_WORKED_FOR]->(a))
+RETURN count(c)
+;</cypher>
     <batch_size>500</batch_size>
     <read_only>N</read_only>
     <nr_retries_on_error/>
@@ -83,7 +65,7 @@ FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedcompany or cdl.las
     <cypher_from_field>N</cypher_from_field>
     <cypher_field/>
     <unwind>Y</unwind>
-    <unwind_map>companies</unwind_map>
+    <unwind_map>contacts</unwind_map>
     <returning_graph>N</returning_graph>
     <return_graph_field/>
     <mappings>
@@ -93,8 +75,8 @@ FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedcompany or cdl.las
         <type>String</type>
       </mapping>
       <mapping>
-        <parameter>accountstatus</parameter>
-        <field>accountstatus</field>
+        <parameter>subcontactstatus</parameter>
+        <field>subcontactstatus</field>
         <type>String</type>
       </mapping>
       <mapping>
@@ -133,26 +115,40 @@ FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedcompany or cdl.las
         <type>LocalDateTime</type>
       </mapping>
       <mapping>
+        <parameter>title</parameter>
+        <field>title</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>email1</parameter>
+        <field>email1</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
+        <parameter>contact</parameter>
+        <field>contact</field>
+        <type>String</type>
+      </mapping>
+      <mapping>
         <parameter>assigncardid</parameter>
         <field>assigncardid</field>
         <type>String</type>
       </mapping>
-    </mappings>
-    <returns>
-      <return>
-        <name>a.name</name>
+      <mapping>
+        <parameter>createuserid</parameter>
+        <field>createuserid</field>
         <type>String</type>
-        <source_type>String</source_type>
-      </return>
-    </returns>
+      </mapping>
+    </mappings>
+    <returns/>
     <attributes/>
     <GUI>
-      <xloc>784</xloc>
-      <yloc>272</yloc>
+      <xloc>816</xloc>
+      <yloc>80</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>Get last :Company</name>
+    <name>Get last Contact</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>N</distribute>
@@ -164,10 +160,14 @@ FOREACH (ignoreMe in CASE WHEN lastmodified > cdl.lastmodifiedcompany or cdl.las
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
-WITH max(coalesce(cdl.lastmodifiedcompany,0)) as lastmodifiedcompany
-WITH apoc.date.format(lastmodifiedcompany,'ms','yyyy-MM-dd HH:mm:ss.sss') AS lastmodifiedcompany
-//RETURN '1990-08-14 14:34:40.040' as lastmodifiedcompany
-RETURN lastmodifiedcompany
+OPTIONAL MATCH (l:Contact)
+WITH max(coalesce(l.createdon,0)) as lastnewcontact, max(coalesce(l.updatedon,0)) as lastmodifiedcontact,cdl
+WITH COLLECT(lastnewcontact)+COLLECT(lastmodifiedcontact)+cdl.crminit as tstamps
+UNWIND tstamps as ts
+WITH min(ts) as lastmodifiedcontact
+WITH apoc.date.format(coalesce(lastmodifiedcontact,0),'ms','yyyy-MM-dd HH:mm:ss.sss') AS lastmodifiedcontact
+//RETURN '1990-08-14 14:34:40.040' as lastmodifiedcontact
+RETURN lastmodifiedcontact
 ;</cypher>
     <batch_size/>
     <read_only>Y</read_only>
@@ -182,19 +182,19 @@ RETURN lastmodifiedcompany
     <mappings/>
     <returns>
       <return>
-        <name>lastmodifiedcompany</name>
+        <name>lastmodifiedcontact</name>
         <type>String</type>
         <source_type>String</source_type>
       </return>
     </returns>
     <attributes/>
     <GUI>
-      <xloc>192</xloc>
-      <yloc>272</yloc>
+      <xloc>240</xloc>
+      <yloc>80</yloc>
     </GUI>
   </transform>
   <transform>
-    <name>Query RangerMSP modified Company (cards) table</name>
+    <name>Query RangerMSP Contact (cards) table</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -206,14 +206,15 @@ RETURN lastmodifiedcompany
     </partitioning>
     <connection>${RangerMSP-ds}</connection>
     <execute_each_row>N</execute_each_row>
-    <lookup>Get last :Company</lookup>
+    <lookup>Get last Contact</lookup>
     <limit>0</limit>
-    <sql>SELECT recid,accountstatus,bcrecid,city,kind,cardid3,company,createdate,updatedate,assigncardid from cards WHERE company is NOT NULL AND kind is NOT NULL AND entitykind=1 AND UPDATEDATE > ? ORDER BY updatedate ASC</sql>
+    <sql>SELECT recid,subcontactstatus,bcrecid,city,kind,cardid3,company,createdate,createuserid,updatedate,title,email1,contact,assigncardid from cards WHERE company is NOT NULL AND (kind is NULL or kind LIKE '%Customer%' or kind LIKE '%Client%') AND
+ entitykind&lt;&gt;1 AND CONTACT is not null and CREATEDATE > ? and accountstatus = 'A' and subcontactstatus='A'</sql>
     <variables_active>Y</variables_active>
     <attributes/>
     <GUI>
-      <xloc>464</xloc>
-      <yloc>272</yloc>
+      <xloc>512</xloc>
+      <yloc>80</yloc>
     </GUI>
   </transform>
   <transform_error_handling>

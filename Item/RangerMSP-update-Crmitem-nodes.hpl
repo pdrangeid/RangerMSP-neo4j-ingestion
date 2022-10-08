@@ -24,18 +24,18 @@
   </notepads>
   <order>
     <hop>
-      <from>Query CommitCRM Item (items) table</from>
-      <to>Create (:Crmitem) nodes for new items</to>
+      <from>Query RangerMSP Item (items) table</from>
+      <to>Create (:Rangeritem) nodes for new items</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Get last :Crmitem</from>
-      <to>Query CommitCRM Item (items) table (mod)</to>
+      <from>Get last :Rangeritem</from>
+      <to>Query RangerMSP Item (items) table (mod)</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Query CommitCRM Item (items) table (mod)</from>
-      <to>Modify (:Crmitem) nodes for modified items</to>
+      <from>Query RangerMSP Item (items) table (mod)</from>
+      <to>Modify (:Rangeritem) nodes for modified items</to>
       <enabled>Y</enabled>
     </hop>
     <hop>
@@ -44,13 +44,13 @@
       <enabled>Y</enabled>
     </hop>
     <hop>
-      <from>Get last :Crmitem</from>
-      <to>Query CommitCRM Item (items) table</to>
+      <from>Get last :Rangeritem</from>
+      <to>Query RangerMSP Item (items) table</to>
       <enabled>Y</enabled>
     </hop>
   </order>
   <transform>
-    <name>Create (:Crmitem) nodes for new items</name>
+    <name>Create (:Rangeritem) nodes for new items</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -65,17 +65,17 @@
 MATCH (rsn:Recordstatus {state:'N'}) 
 MATCH (rsa:Recordstatus {state:'A'})
 OPTIONAL MATCH (ic:Itemclass {name:row.USER1})
-MERGE (i:Crmitem {recid:row.RECID})
+MERGE (i:Rangeritem {recid:row.RECID})
 ON CREATE
 set i.number=row.ITEMNO,i.name=row.NAME,i.description=row.DESCRIPTION,i.notes=row.NOTES,i.createdon=datetime(row.CREATEDATE).epochmillis,i.updatedon=datetime(row.UPDATEDATE).epochmillis,i.price=row.UNITPRICE
 FOREACH (ignoreMe in CASE WHEN row.SUSPENDED='Y' then [1] ELSE [] END | MERGE (i)-[:ITEM_STATE]-(rsn))
 FOREACH (ignoreMe in CASE WHEN row.SUSPENDED='N' then [1] ELSE [] END | MERGE (i)-[:ITEM_STATE]-(rsa))
 FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL then [1] ELSE [] END | MERGE (i)-[:ITEM_CLASS]-(ic))
 with row,i
-MATCH (e:Crmemployee {acctrecid:row.CREATEUSER})
+MATCH (e:Rangeremployee {acctrecid:row.CREATEUSER})
 MERGE (i)-[:CREATED_BY]->(e)
 with i,row
-MATCH (e:Crmemployee {acctrecid:row.UPDATEUSER})
+MATCH (e:Rangeremployee {acctrecid:row.UPDATEUSER})
 MERGE (i)-[:UPDATED_BY]->(e)
 ;</cypher>
     <batch_size>1000</batch_size>
@@ -249,7 +249,7 @@ MERGE (i)-[:UPDATED_BY]->(e)
     </GUI>
   </transform>
   <transform>
-    <name>Get last :Crmitem</name>
+    <name>Get last :Rangeritem</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>N</distribute>
@@ -260,13 +260,13 @@ MERGE (i)-[:UPDATED_BY]->(e)
       <schema_name/>
     </partitioning>
     <connection>${graphdb-ds}</connection>
-    <cypher>MATCH (cdl:Crmdataload {name:'CommitCRM'})
-OPTIONAL MATCH (l:Crmitem)
+    <cypher>MATCH (cdl:Rangerdataload {name:'RangerMSP'})
+OPTIONAL MATCH (l:Rangeritem)
 WITH max(coalesce(l.createdon,0)) as lastnewitem, max(coalesce(l.updatedon,0)) as lastmodifieditem,cdl
 WITH COLLECT(lastnewitem)+COLLECT(lastmodifieditem)+cdl.crminit as tstamps
 UNWIND tstamps as ts
 WITH min(ts) as lastmodifieditem
-WITH apoc.date.format(coalesce(lastmodifieditem,0),'ms','yyyy-MM-dd HH:mm:ss.sss','CST') AS lastmodifieditem
+WITH apoc.date.format(coalesce(lastmodifieditem,0),'ms','yyyy-MM-dd HH:mm:ss.sss') AS lastmodifieditem
 //RETURN '1990-08-14 14:34:40.040' as lastmodifieditem
 RETURN lastmodifieditem
 ;</cypher>
@@ -283,7 +283,7 @@ RETURN lastmodifieditem
     <mappings/>
     <returns>
       <return>
-        <name>lastmoditem</name>
+        <name>lastmodifieditem</name>
         <type>String</type>
         <source_type>String</source_type>
       </return>
@@ -295,7 +295,7 @@ RETURN lastmodifieditem
     </GUI>
   </transform>
   <transform>
-    <name>Modify (:Crmitem) nodes for modified items</name>
+    <name>Modify (:Rangeritem) nodes for modified items</name>
     <type>Neo4jCypherOutput</type>
     <description/>
     <distribute>Y</distribute>
@@ -307,14 +307,14 @@ RETURN lastmodifieditem
     </partitioning>
     <connection>${graphdb-ds}</connection>
     <cypher>UNWIND $items as row
-MATCH (i:Crmitem {recid:row.RECID})
+MATCH (i:Rangeritem {recid:row.RECID})
 MATCH (rsn:Recordstatus {state:'N'}) 
 MATCH (rsa:Recordstatus {state:'A'})
 OPTIONAL MATCH (ic:Itemclass {name:row.USER1})
-OPTIONAL MATCH (cu:Crmemployee {acctrecid:row.CREATEUSER})
-OPTIONAL MATCH (uu:Crmemployee {acctrecid:row.UPDATEUSER})
-OPTIONAL MATCH (i)-[cbr:ACCOUNT_STATE]-(ocu:Crmemployee)
-OPTIONAL MATCH (i)-[ubr:UPDATED_BY]-(ouu:Crmemployee)
+OPTIONAL MATCH (cu:Rangeremployee {acctrecid:row.CREATEUSER})
+OPTIONAL MATCH (uu:Rangeremployee {acctrecid:row.UPDATEUSER})
+OPTIONAL MATCH (i)-[cbr:ACCOUNT_STATE]-(ocu:Rangeremployee)
+OPTIONAL MATCH (i)-[ubr:UPDATED_BY]-(ouu:Rangeremployee)
 OPTIONAL MATCH (i)-[icr:ITEM_CLASS]-(oic:Itemclass)
 OPTIONAL MATCH (i)-[irs:ITEM_STATE]-(ors:Recordstatus)
 set i.number=row.ITEMNO,i.name=row.NAME,i.description=row.DESCRIPTION,i.notes=row.NOTES,i.createdon=datetime(row.CREATEDATE).epochmillis,i.updatedon=datetime(row.UPDATEDATE).epochmillis
@@ -415,7 +415,7 @@ FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL then [1] ELSE [] END | MERGE 
     </GUI>
   </transform>
   <transform>
-    <name>Query CommitCRM Item (items) table</name>
+    <name>Query RangerMSP Item (items) table</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -427,7 +427,7 @@ FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL then [1] ELSE [] END | MERGE 
     </partitioning>
     <connection>${RangerMSP-ds}</connection>
     <execute_each_row>Y</execute_each_row>
-    <lookup>Get last :Crmitem</lookup>
+    <lookup>Get last :Rangeritem</lookup>
     <limit>0</limit>
     <sql>SELECT RECID,ITEMNO,NAME,CAST(DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,UNITPRICE,CAST(NOTES as SQL_VARCHAR) AS NOTES,CREATEUSER,CREATEDATE,UPDATEDATE,UPDATEUSER,SUSPENDED,USER1 from Items WHERE CREATEDATE > ?</sql>
     <variables_active>Y</variables_active>
@@ -438,7 +438,7 @@ FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL then [1] ELSE [] END | MERGE 
     </GUI>
   </transform>
   <transform>
-    <name>Query CommitCRM Item (items) table (mod)</name>
+    <name>Query RangerMSP Item (items) table (mod)</name>
     <type>TableInput</type>
     <description/>
     <distribute>Y</distribute>
@@ -450,7 +450,7 @@ FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL then [1] ELSE [] END | MERGE 
     </partitioning>
     <connection>${RangerMSP-ds}</connection>
     <execute_each_row>N</execute_each_row>
-    <lookup>Get last :Crmitem</lookup>
+    <lookup>Get last :Rangeritem</lookup>
     <limit>0</limit>
     <sql>SELECT RECID,ITEMNO,NAME,CAST(DESCRIPTION as SQL_VARCHAR) AS DESCRIPTION,UNITPRICE,CAST(NOTES as SQL_VARCHAR) AS NOTES,CREATEUSER,CREATEDATE,UPDATEDATE,UPDATEUSER,SUSPENDED,USER1 from Items WHERE UPDATEDATE > ?</sql>
     <variables_active>Y</variables_active>
