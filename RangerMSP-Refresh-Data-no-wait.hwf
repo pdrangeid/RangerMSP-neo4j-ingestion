@@ -17,7 +17,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>&gt;${PROJECT_HOME}\Initialize-RangerMSP-Asset.hpl</filename>
+      <filename>${PROJECT_HOME}\Initialize-RangerMSP-Asset.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -175,7 +175,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>&gt;${PROJECT_HOME}\Ticket\RangerMSP-new-Crmticket-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}\Ticket\RangerMSP-new-Crmticket-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -406,7 +406,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>&gt;${PROJECT_HOME}\Initialize-RangerMSP-Opps.hpl</filename>
+      <filename>${PROJECT_HOME}\Initialize-RangerMSP-Opps.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -434,7 +434,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>&gt;${PROJECT_HOME}\Initialize-RangerMSP-Tickets.hpl</filename>
+      <filename>${PROJECT_HOME}\Initialize-RangerMSP-Tickets.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -462,7 +462,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>&gt;${PROJECT_HOME}\Initialize-RangerMSP-Contracts.hpl</filename>
+      <filename>${PROJECT_HOME}\Initialize-RangerMSP-Contracts.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -490,7 +490,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>&gt;${PROJECT_HOME}\Ticket\RangerMSP-update-Crmticket-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}\Ticket\RangerMSP-update-Crmticket-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -518,7 +518,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>&gt;${PROJECT_HOME}\Contact\RangerMSP-new-contact-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}\Contact\RangerMSP-new-contact-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -546,7 +546,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>&gt;${PROJECT_HOME}\Company\RangerMSP-new-company-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}\Company\RangerMSP-new-company-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -574,7 +574,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>&gt;${PROJECT_HOME}\Charge\RangerMSP-new-Crmcharge-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}\Charge\RangerMSP-new-Crmcharge-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>

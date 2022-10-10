@@ -492,11 +492,11 @@ MERGE (itgp:Itemtypegroup {name:'Part'}) SET itgp.code='P'
       <attributes_hac/>
     </action>
     <action>
-      <name>Set-RangerMSP-Variables</name>
+      <name>Set-RangerMSP-Parameters</name>
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>>${PROJECT_HOME}\Set-RangerMSP-Parameters.hpl</filename>
+      <filename>${PROJECT_HOME}/Set-RangerMSP-Parameters.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -537,7 +537,7 @@ MERGE (itgp:Itemtypegroup {name:'Part'}) SET itgp.code='P'
     </hop>
     <hop>
       <from>RangerMSP Pre-requisites</from>
-      <to>Set-RangerMSP-Variables</to>
+      <to>Set-RangerMSP-Parameters</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>
