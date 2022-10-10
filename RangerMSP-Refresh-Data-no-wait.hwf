@@ -36,7 +36,7 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>544</xloc>
+      <xloc>512</xloc>
       <yloc>64</yloc>
       <attributes_hac/>
     </action>
