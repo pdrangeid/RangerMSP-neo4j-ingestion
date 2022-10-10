@@ -35,7 +35,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>${PROJECT_HOME}/../RangerMSP/Contract/RangerMSP-update-Crmcontract-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}/Contract/RangerMSP-update-Crmcontract-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>

@@ -17,7 +17,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Initialize-RangerMSP-Asset.hpl</filename>
+      <filename>>${PROJECT_HOME}\Initialize-RangerMSP-Asset.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -45,7 +45,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>${PROJECT_HOME}/../RangerMSP/Company/RangerMSP-update-company-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}/Company/RangerMSP-update-company-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -73,7 +73,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>${PROJECT_HOME}/../RangerMSP/Contact/RangerMSP-update-contact-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}/Contact/RangerMSP-update-contact-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -101,7 +101,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>${PROJECT_HOME}/../RangerMSP/Employee/RangerMSP-update-Crmemployee-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}/Employee/RangerMSP-update-Crmemployee-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -147,7 +147,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>${PROJECT_HOME}/../RangerMSP/Item/RangerMSP-update-Crmitem-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}/Item/RangerMSP-update-Crmitem-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -175,7 +175,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>${PROJECT_HOME}/../RangerMSP/Ticket/RangerMSP-update-Crmticket-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}/Ticket/RangerMSP-update-Crmticket-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -203,7 +203,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>${PROJECT_HOME}/../RangerMSP/Charge/RangerMSP-update-Crmcharge-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}/Charge/RangerMSP-update-Crmcharge-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>Y</clear_rows>
@@ -354,7 +354,7 @@
       <type>WORKFLOW</type>
       <attributes/>
       <run_configuration>local</run_configuration>
-      <filename>${PROJECT_HOME}/../RangerMSP/Set-Indexes.hwf</filename>
+      <filename>${PROJECT_HOME}/Set-Indexes.hwf</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <set_logfile>N</set_logfile>
@@ -381,7 +381,7 @@
       <type>WORKFLOW</type>
       <attributes/>
       <run_configuration>local</run_configuration>
-      <filename>${PROJECT_HOME}/../RangerMSP/Contract/RangerMSP-Crmcontract.hwf</filename>
+      <filename>${PROJECT_HOME}/Contract/RangerMSP-Crmcontract.hwf</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <set_logfile>N</set_logfile>
@@ -408,7 +408,7 @@
       <type>WORKFLOW</type>
       <attributes/>
       <run_configuration>local</run_configuration>
-      <filename>${PROJECT_HOME}/../RangerMSP/Asset/RangerMSP-update-Crmasset.hwf</filename>
+      <filename>${PROJECT_HOME}/Asset/RangerMSP-update-Crmasset.hwf</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <set_logfile>N</set_logfile>
@@ -434,7 +434,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Initialize-RangerMSP-Opps.hpl</filename>
+      <filename>>${PROJECT_HOME}\Initialize-RangerMSP-Opps.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -498,7 +498,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Initialize-RangerMSP-Tickets.hpl</filename>
+      <filename>>${PROJECT_HOME}\Initialize-RangerMSP-Tickets.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -538,7 +538,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Initialize-RangerMSP-Contracts.hpl</filename>
+      <filename>>${PROJECT_HOME}\Initialize-RangerMSP-Contracts.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>

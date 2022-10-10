@@ -496,7 +496,7 @@ MERGE (itgp:Itemtypegroup {name:'Part'}) SET itgp.code='P'
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Set-RangerMSP-Parameters.hpl</filename>
+      <filename>>${PROJECT_HOME}\Set-RangerMSP-Parameters.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>

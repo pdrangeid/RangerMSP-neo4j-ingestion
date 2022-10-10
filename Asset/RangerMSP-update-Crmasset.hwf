@@ -35,7 +35,7 @@
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>${PROJECT_HOME}/../RangerMSP/Asset/RangerMSP-update-Crmasset-nodes.hpl</filename>
+      <filename>${PROJECT_HOME}/Asset/RangerMSP-update-Crmasset-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -231,7 +231,7 @@ RETURN ca.name,m.name</script>
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>C:\Users\pdran\OneDrive\hop-projects\RangerMSP\Asset\RangerMSP-new-Crmasset-nodes.hpl</filename>
+      <filename>>${PROJECT_HOME}\Asset\RangerMSP-new-Crmasset-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>

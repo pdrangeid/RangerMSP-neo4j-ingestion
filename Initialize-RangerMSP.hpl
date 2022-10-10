@@ -915,7 +915,7 @@ RETURN stageid,stagename
       <method>none</method>
       <schema_name/>
     </partitioning>
-    <filename>${PROJECT_HOME}/../RangerMSP/ISP-email-domains.csv</filename>
+    <filename>${PROJECT_HOME}/ISP-email-domains.csv</filename>
     <filename_field/>
     <rownum_field>row</rownum_field>
     <include_filename>N</include_filename>
