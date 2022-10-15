@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pipeline>
   <info>
-    <name>RangerMSP-new-Crmcharge-nodes</name>
+    <name>RangerMSP\Charge\RangerMSP-new-Crmcharge-nodes</name>
     <name_sync_with_filename>Y</name_sync_with_filename>
     <description/>
     <extended_description/>
@@ -50,15 +50,15 @@
 MERGE (c:Rangercharge {recid:row.RECID})
 ON CREATE SET c.date=row.SLIPDATE,c.description=row.DESCRIPTION,c.hours=row.HOURSAMOUNT,c.quantity=row.QUANTITY,c.price=row.PRICE,c.createdon=datetime(row.CREATEDATE).epochmillis,c.updatedon=datetime(row.UPDATEDATE).epochmillis
 WITH *
-OPTIONAL MATCH (e:Rangeremployee {acctrecid:coalesce(row.WORKERID,"Nothing")}) 
-OPTIONAL MATCH (t:Ticket {recid:coalesce(row.TICKETID,"Nothing")}) 
-OPTIONAL MATCH (i:Rangeritem {recid:coalesce(row.ITEMID,"Nothing")})
-OPTIONAL MATCH (uu:Rangeremployee {acctrecid:coalesce(row.UPDATEUSER,"Nothing")})
-OPTIONAL MATCH (cu:Rangeremployee {acctrecid:coalesce(row.CREATEUSER,"Nothing")})
-OPTIONAL MATCH (ct:Contact {acctrecid:coalesce(row.CONTACTID,"Nothing")})
-OPTIONAL MATCH (bc:Rangercontract {recid:coalesce(row.BCRECID,"Nothing")})
-OPTIONAL MATCH (bk:Billkind {code:coalesce(row.BILLKIND,"Nothing")})
-OPTIONAL MATCH (bs:Billstage {code:coalesce(row.STAGE,"Nothing")})
+OPTIONAL MATCH (e:Rangeremployee {acctrecid:row.WORKERID}) 
+OPTIONAL MATCH (t:Ticket {recid:row.TICKETID}) 
+OPTIONAL MATCH (i:Rangeritem {recid:row.ITEMID})
+OPTIONAL MATCH (uu:Rangeremployee {acctrecid:row.UPDATEUSER})
+OPTIONAL MATCH (cu:Rangeremployee {acctrecid:row.CREATEUSER})
+OPTIONAL MATCH (ct:Contact {acctrecid:row.CONTACTID})
+OPTIONAL MATCH (bc:Rangercontract {recid:row.BCRECID})
+OPTIONAL MATCH (bk:Billkind {code:row.BILLKIND})
+OPTIONAL MATCH (bs:Billstage {code:row.STAGE})
 FOREACH (ignoreMe in CASE WHEN bk.code IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:IS_BILLABLE]->(bk))
 FOREACH (ignoreMe in CASE WHEN bs.code IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:BILLING_STAGE]->(bs))
 FOREACH (ignoreMe in CASE WHEN e.acctrecid IS NOT NULL THEN [1] ELSE [] END | MERGE (c)-[:ENTRY_FOR]->(e))

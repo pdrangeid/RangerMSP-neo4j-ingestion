@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pipeline>
   <info>
-    <name>RangerMSP-new-Crmasset-nodes</name>
+    <name>RangerMSP\Asset\RangerMSP-new-Crmasset-nodes</name>
     <name_sync_with_filename>Y</name_sync_with_filename>
     <description/>
     <extended_description/>
@@ -85,13 +85,13 @@ MATCH (a:Company {acctrecid:coalesce(row.ACCOUNTRECID,'None Provided')})
 MATCH (ac:Assetcategory {name:coalesce(trim(row.USER1),'None Provided')})
 MATCH (at:Assettype {name:coalesce(row.VALUE,'None Provided')})
 MATCH (np:Model {name:'None Provided'})
-OPTIONAL MATCH (pa:Rangerasset {recid:coalesce(row.PARENTASSETRECID,'None Provided')})
-OPTIONAL MATCH (ib:Rangeremployee {acctrecid:coalesce(row.INSTALLEDBY,'None Provided')})
-OPTIONAL MATCH (cb:Rangeremployee {acctrecid:coalesce(row.CREATEUSER,'None Provided')})
-OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
+OPTIONAL MATCH (pa:Rangerasset {recid:row.PARENTASSETRECID})
+OPTIONAL MATCH (ib:Rangeremployee {acctrecid:row.INSTALLEDBY})
+OPTIONAL MATCH (cb:Rangeremployee {acctrecid:row.CREATEUSER})
+OPTIONAL MATCH (c:Contact {acctrecid:row.CONTACTRECID})
 OPTIONAL MATCH (m:Model {name:trim(row.MODEL)})
 OPTIONAL MATCH (rs:Recordstatus {state:row.STATUS})
-OPTIONAL MATCH (c:Contact {acctrecid:coalesce(row.CONTACTRECID,'None Provided')})
+OPTIONAL MATCH (c:Contact {acctrecid:row.CONTACTRECID})
 OPTIONAL MATCH (ic:Assetcategory {name:coalesce(row.USER1,'None Provided')})
 OPTIONAL MATCH (at:Assettype {name:coalesce(row.VALUE,'None Provided')})
 //OPTIONAL MATCH (mfr:Manufacturer) WHERE toLower(row.MANUFACTURER) =toLower(mfr.name)// or toLower(row.MANUFACTURER) in mfr.aliases

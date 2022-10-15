@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workflow>
-  <name>RangerMSP-Refresh-Data-no-wait</name>
+  <name>RangerMSP-Refresh-Data</name>
   <name_sync_with_filename>Y</name_sync_with_filename>
   <description/>
   <extended_description/>
@@ -36,8 +36,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>512</xloc>
-      <yloc>64</yloc>
+      <xloc>592</xloc>
+      <yloc>32</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -64,8 +64,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>576</xloc>
-      <yloc>160</yloc>
+      <xloc>592</xloc>
+      <yloc>128</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -93,7 +93,7 @@
       </parameters>
       <parallel>N</parallel>
       <xloc>224</xloc>
-      <yloc>160</yloc>
+      <yloc>128</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -120,8 +120,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>304</xloc>
-      <yloc>256</yloc>
+      <xloc>256</xloc>
+      <yloc>224</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -139,7 +139,7 @@
       <DayOfMonth>1</DayOfMonth>
       <parallel>N</parallel>
       <xloc>80</xloc>
-      <yloc>64</yloc>
+      <yloc>32</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -166,8 +166,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>960</xloc>
-      <yloc>256</yloc>
+      <xloc>1056</xloc>
+      <yloc>224</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -194,8 +194,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>960</xloc>
-      <yloc>336</yloc>
+      <xloc>1056</xloc>
+      <yloc>320</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -222,8 +222,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>288</xloc>
-      <yloc>336</yloc>
+      <xloc>272</xloc>
+      <yloc>320</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -251,7 +251,7 @@
       </parameters>
       <parallel>N</parallel>
       <xloc>80</xloc>
-      <yloc>256</yloc>
+      <yloc>224</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -279,7 +279,7 @@
       </parameters>
       <parallel>N</parallel>
       <xloc>80</xloc>
-      <yloc>160</yloc>
+      <yloc>128</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -289,7 +289,7 @@
       <attributes/>
       <parallel>N</parallel>
       <xloc>80</xloc>
-      <yloc>448</yloc>
+      <yloc>432</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -317,7 +317,7 @@
       </parameters>
       <parallel>N</parallel>
       <xloc>80</xloc>
-      <yloc>336</yloc>
+      <yloc>320</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -343,8 +343,8 @@
       </parameters>
       <set_append_logfile>N</set_append_logfile>
       <parallel>N</parallel>
-      <xloc>272</xloc>
-      <yloc>64</yloc>
+      <xloc>304</xloc>
+      <yloc>32</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -370,8 +370,8 @@
       </parameters>
       <set_append_logfile>N</set_append_logfile>
       <parallel>N</parallel>
-      <xloc>752</xloc>
-      <yloc>256</yloc>
+      <xloc>832</xloc>
+      <yloc>224</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -397,8 +397,8 @@
       </parameters>
       <set_append_logfile>N</set_append_logfile>
       <parallel>N</parallel>
-      <xloc>544</xloc>
-      <yloc>256</yloc>
+      <xloc>624</xloc>
+      <yloc>224</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -425,8 +425,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>752</xloc>
-      <yloc>64</yloc>
+      <xloc>832</xloc>
+      <yloc>32</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -453,8 +453,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>960</xloc>
-      <yloc>64</yloc>
+      <xloc>1056</xloc>
+      <yloc>32</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -481,8 +481,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>960</xloc>
-      <yloc>160</yloc>
+      <xloc>1056</xloc>
+      <yloc>128</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -509,8 +509,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>720</xloc>
-      <yloc>336</yloc>
+      <xloc>784</xloc>
+      <yloc>320</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -538,7 +538,7 @@
       </parameters>
       <parallel>N</parallel>
       <xloc>400</xloc>
-      <yloc>160</yloc>
+      <yloc>128</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -565,8 +565,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>752</xloc>
-      <yloc>160</yloc>
+      <xloc>832</xloc>
+      <yloc>128</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -593,8 +593,36 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>480</xloc>
-      <yloc>336</yloc>
+      <xloc>512</xloc>
+      <yloc>320</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>new-Rangerasset-nodes</name>
+      <description/>
+      <type>PIPELINE</type>
+      <attributes/>
+      <filename>${PROJECT_HOME}/Asset/RangerMSP-new-Crmasset-nodes.hpl</filename>
+      <params_from_previous>N</params_from_previous>
+      <exec_per_row>N</exec_per_row>
+      <clear_rows>N</clear_rows>
+      <clear_files>N</clear_files>
+      <set_logfile>N</set_logfile>
+      <logfile/>
+      <logext/>
+      <add_date>N</add_date>
+      <add_time>N</add_time>
+      <loglevel>Basic</loglevel>
+      <set_append_logfile>N</set_append_logfile>
+      <wait_until_finished>Y</wait_until_finished>
+      <create_parent_folder>N</create_parent_folder>
+      <run_configuration>local</run_configuration>
+      <parameters>
+        <pass_all_parameters>Y</pass_all_parameters>
+      </parameters>
+      <parallel>N</parallel>
+      <xloc>432</xloc>
+      <yloc>224</yloc>
       <attributes_hac/>
     </action>
   </actions>
@@ -637,20 +665,6 @@
     <hop>
       <from>RangerMSP-Crmcontract</from>
       <to>Update (:Rangeritem) nodes</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>N</unconditional>
-    </hop>
-    <hop>
-      <from>Update (:Rangeremployee)</from>
-      <to>RangerMSP-update-Crmasset</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>N</unconditional>
-    </hop>
-    <hop>
-      <from>RangerMSP-update-Crmasset</from>
-      <to>RangerMSP-Crmcontract</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>
@@ -742,6 +756,27 @@
     <hop>
       <from>Update (:Opportunity)</from>
       <to>Success</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>RangerMSP-update-Crmasset</from>
+      <to>RangerMSP-Crmcontract</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Update (:Rangeremployee)</from>
+      <to>new-Rangerasset-nodes</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>new-Rangerasset-nodes</from>
+      <to>RangerMSP-update-Crmasset</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>

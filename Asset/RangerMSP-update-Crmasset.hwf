@@ -31,34 +31,6 @@
       <attributes_hac/>
     </action>
     <action>
-      <name>RangerMSP-update-Crmasset-nodes.hpl</name>
-      <description/>
-      <type>PIPELINE</type>
-      <attributes/>
-      <filename>${PROJECT_HOME}/Asset/RangerMSP-update-Crmasset-nodes.hpl</filename>
-      <params_from_previous>N</params_from_previous>
-      <exec_per_row>N</exec_per_row>
-      <clear_rows>N</clear_rows>
-      <clear_files>N</clear_files>
-      <set_logfile>N</set_logfile>
-      <logfile/>
-      <logext/>
-      <add_date>N</add_date>
-      <add_time>N</add_time>
-      <loglevel>Basic</loglevel>
-      <set_append_logfile>N</set_append_logfile>
-      <wait_until_finished>Y</wait_until_finished>
-      <create_parent_folder>N</create_parent_folder>
-      <run_configuration>local</run_configuration>
-      <parameters>
-        <pass_all_parameters>Y</pass_all_parameters>
-      </parameters>
-      <parallel>N</parallel>
-      <xloc>480</xloc>
-      <yloc>48</yloc>
-      <attributes_hac/>
-    </action>
-    <action>
       <name>Assign (:Rangerasset)-[:ASSET_TYPE]-(:Assetclass)</name>
       <description/>
       <type>NEO4J_CYPHER_SCRIPT</type>
@@ -227,11 +199,11 @@ RETURN ca.name,m.name</script>
       <attributes_hac/>
     </action>
     <action>
-      <name>RangerMSP-new-Crmasset-nodes</name>
+      <name>RangerMSP-update-Crmasset-nodes</name>
       <description/>
       <type>PIPELINE</type>
       <attributes/>
-      <filename>>${PROJECT_HOME}\Asset\RangerMSP-new-Crmasset-nodes.hpl</filename>
+      <filename>{PROJECT_HOME}/Asset/RangerMSP-update-Crmasset-nodes.hpl</filename>
       <params_from_previous>N</params_from_previous>
       <exec_per_row>N</exec_per_row>
       <clear_rows>N</clear_rows>
@@ -250,7 +222,7 @@ RETURN ca.name,m.name</script>
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>224</xloc>
+      <xloc>400</xloc>
       <yloc>48</yloc>
       <attributes_hac/>
     </action>
@@ -259,13 +231,6 @@ RETURN ca.name,m.name</script>
     <hop>
       <from>Assign (:Rangerasset)-[:ASSET_TYPE]-(:Assetclass)</from>
       <to>Create (:Rangerasset)-[:MONITORING_REQUIREMENT]->(:Monitoring)</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>N</unconditional>
-    </hop>
-    <hop>
-      <from>RangerMSP-update-Crmasset-nodes.hpl</from>
-      <to>(:Rangerasset) naming hygiene</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>
@@ -300,17 +265,17 @@ RETURN ca.name,m.name</script>
     </hop>
     <hop>
       <from>Start</from>
-      <to>RangerMSP-new-Crmasset-nodes</to>
+      <to>RangerMSP-update-Crmasset-nodes</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
+      <unconditional>N</unconditional>
     </hop>
     <hop>
-      <from>RangerMSP-new-Crmasset-nodes</from>
-      <to>RangerMSP-update-Crmasset-nodes.hpl</to>
+      <from>RangerMSP-update-Crmasset-nodes</from>
+      <to>(:Rangerasset) naming hygiene</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
+      <unconditional>N</unconditional>
     </hop>
   </hops>
   <notepads>

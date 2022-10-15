@@ -31,17 +31,12 @@
     <hop>
       <from>Get last :Rangeritem</from>
       <to>Query RangerMSP Item (items) table (mod)</to>
-      <enabled>Y</enabled>
+      <enabled>N</enabled>
     </hop>
     <hop>
       <from>Query RangerMSP Item (items) table (mod)</from>
       <to>Modify (:Rangeritem) nodes for modified items</to>
-      <enabled>Y</enabled>
-    </hop>
-    <hop>
-      <from>Get job variables</from>
-      <to>Update Job/TFLogging</to>
-      <enabled>Y</enabled>
+      <enabled>N</enabled>
     </hop>
     <hop>
       <from>Get last :Rangeritem</from>
@@ -155,97 +150,6 @@ MERGE (i)-[:UPDATED_BY]->(e)
     <GUI>
       <xloc>768</xloc>
       <yloc>80</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Get job variables</name>
-    <type>GetVariable</type>
-    <description/>
-    <distribute>N</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <fields>
-      <field>
-        <name>jobname</name>
-        <variable> ${Internal.Workflow.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>transname</name>
-        <variable>${Internal.Pipeline.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>tdir</name>
-        <variable>${Internal.Pipeline.Filename.Folder}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>jdir</name>
-        <variable>${Internal.Workflow.Filename.Folder}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>jfilename</name>
-        <variable>${Internal.Workflow.Filename.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-      <field>
-        <name>tfilename</name>
-        <variable>${Internal.Pipeline.Filename.Name}</variable>
-        <type>String</type>
-        <format/>
-        <currency/>
-        <decimal/>
-        <group/>
-        <length>-1</length>
-        <precision>-1</precision>
-        <trim_type>none</trim_type>
-      </field>
-    </fields>
-    <attributes/>
-    <GUI>
-      <xloc>112</xloc>
-      <yloc>272</yloc>
     </GUI>
   </transform>
   <transform>
@@ -458,89 +362,6 @@ FOREACH (ignoreMe in CASE WHEN ic.name IS NOT NULL then [1] ELSE [] END | MERGE 
     <GUI>
       <xloc>480</xloc>
       <yloc>160</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Update Job/TFLogging</name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $taskparams as t
-WITH t,timestamp() as tfstart,trim(replace(t.jobname,'Parent Job Name',t.transname)) as jobname
-MATCH (l:N4jlogging {jobname:jobname})
-SET l.lasttfrun=tfstart,l.jobname=jobname,l.transname=t.transname,l.jobstatus='running',l.tdir=t.tdir,l.tfilename=t.tfilename,l.jdir=t.jdir,l.jfilename=t.jfilename
-RETURN apoc.date.format(l.lastjobrun,'ms',"yyyy-MM-dd'T'HH:mm:ss",'CST') as jobstart,l.jobname
-;</cypher>
-    <batch_size/>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>taskparams</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>jobname</parameter>
-        <field>jobname</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>transname</parameter>
-        <field>transname</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>tdir</parameter>
-        <field>tdir</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>jdir</parameter>
-        <field>jdir</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>jfilename</parameter>
-        <field>jfilename</field>
-        <type>String</type>
-      </mapping>
-      <mapping>
-        <parameter>tfilename</parameter>
-        <field>tfilename</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns>
-      <return>
-        <name>jobstart</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>l.jobname</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-      <return>
-        <name>l.transname</name>
-        <type>String</type>
-        <source_type>String</source_type>
-      </return>
-    </returns>
-    <attributes/>
-    <GUI>
-      <xloc>288</xloc>
-      <yloc>272</yloc>
     </GUI>
   </transform>
   <transform_error_handling>

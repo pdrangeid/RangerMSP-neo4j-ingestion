@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pipeline>
   <info>
-    <name>RangerMSP-new-Crmticket-nodes</name>
+    <name>RangerMSP\Ticket\RangerMSP-new-Crmticket-nodes</name>
     <name_sync_with_filename>Y</name_sync_with_filename>
     <description/>
     <extended_description/>
@@ -56,8 +56,8 @@ OPTIONAL MATCH (stat1:Ticketstatus {statcode:row.STATUS})
 OPTIONAL MATCH (stat:Ticketstatus {statcode:coalesce(stat1.statcode,'None Provided')})
 OPTIONAL MATCH (prio1:Ticketpriority {statcode:row.PRIORITY})
 OPTIONAL MATCH (prio:Ticketpriority {statcode:coalesce(prio1.statcode,'None Provided')})
-//OPTIONAL MATCH (ca1:Rangerasset {recid:row.ASSETRECID})
-OPTIONAL MATCH (ca:Rangerasset {recid:coalesce(row.ASSETRECID,'None Provided')})
+OPTIONAL MATCH (ca:Rangerasset {recid:row.ASSETRECID})
+//OPTIONAL MATCH (ca:Rangerasset {recid:coalesce(row.ASSETRECID,'None Provided')})
 OPTIONAL MATCH (tc:Rangercontract {recid:row.BCRECID})
 OPTIONAL MATCH (L1:Ticketlabel {labelcode:row.L1})
 OPTIONAL MATCH (L2:Ticketlabel {labelcode:row.L2})
