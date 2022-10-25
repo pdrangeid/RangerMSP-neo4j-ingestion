@@ -63,7 +63,7 @@ CALL apoc.schema.assert({Rangercharge:['createdon']},null,False)
 ;
 CALL apoc.schema.assert({Rangercontract:['code','name','seqid']},null,False)
 ;
-CALL apoc.schema.assert({Rangerasset:['name'],Rangeremployee:['name'],Rangerasset:['mac'],Rangerasset:['serial'],Company:['name'],Contact:['email'],Contact:['name'],Cmkservice:['name'],Oppkind:['name'],Oppreason:['name'],Oppsource:['name']},null,False)
+CALL apoc.schema.assert({Rangerasset:['name'],Rangeremployee:['name'],Rangerasset:['mac'],Rangerasset:['serial'],Company:['name'],Contact:['email'],Contact:['name'],Oppkind:['name'],Oppreason:['name'],Oppsource:['name']},null,False)
 ;
 CALL apoc.schema.assert({Rangeritem:['description']},null,False)
 ;
@@ -95,7 +95,6 @@ MERGE (nact:Recordstatus {name:'InActive',state:'N'})
 MERGE (m:Model {name:'None Provided'})
 MERGE (v:Vendor {name:'None Available'})
 MERGE (cat:Catalias {name:'None Provided'})
-MERGE (ha:Rangerhaas {name:'HaaS Asset'})
 
 //***EDIT-HERE*** If these don't match your Opportunity status codes
 //SECTION Create OppStatus
@@ -405,7 +404,7 @@ MERGE (at)-[:OF_CLASS]->(ac)
 // Asset types that belong to Peripheral
 MERGE (ac:Assetclass {name:'Peripheral'})
 MERGE (at:Assettype {name:'Display'})
-MERGE (at)-[:OF_CLASS]-&gt;(ac)
+MERGE (at)-[:OF_CLASS]->(ac)
 WITH ac
 MERGE (at:Assettype {name:'Peripheral'})
 MERGE (at)-[:OF_CLASS]->(ac)
