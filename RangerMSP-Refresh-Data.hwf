@@ -36,8 +36,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>592</xloc>
-      <yloc>32</yloc>
+      <xloc>816</xloc>
+      <yloc>48</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -64,8 +64,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>592</xloc>
-      <yloc>128</yloc>
+      <xloc>816</xloc>
+      <yloc>160</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -92,8 +92,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>224</xloc>
-      <yloc>128</yloc>
+      <xloc>448</xloc>
+      <yloc>160</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -120,8 +120,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>256</xloc>
-      <yloc>224</yloc>
+      <xloc>480</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -139,7 +139,7 @@
       <DayOfMonth>1</DayOfMonth>
       <parallel>N</parallel>
       <xloc>80</xloc>
-      <yloc>32</yloc>
+      <yloc>48</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -166,8 +166,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>1056</xloc>
-      <yloc>224</yloc>
+      <xloc>1280</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -194,8 +194,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>1056</xloc>
-      <yloc>320</yloc>
+      <xloc>1280</xloc>
+      <yloc>352</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -222,8 +222,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>272</xloc>
-      <yloc>320</yloc>
+      <xloc>496</xloc>
+      <yloc>352</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -250,8 +250,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>80</xloc>
-      <yloc>224</yloc>
+      <xloc>304</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -278,8 +278,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>80</xloc>
-      <yloc>128</yloc>
+      <xloc>304</xloc>
+      <yloc>160</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -288,8 +288,8 @@
       <type>SUCCESS</type>
       <attributes/>
       <parallel>N</parallel>
-      <xloc>80</xloc>
-      <yloc>432</yloc>
+      <xloc>496</xloc>
+      <yloc>464</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -316,8 +316,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>80</xloc>
-      <yloc>320</yloc>
+      <xloc>304</xloc>
+      <yloc>352</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -343,8 +343,8 @@
       </parameters>
       <set_append_logfile>N</set_append_logfile>
       <parallel>N</parallel>
-      <xloc>304</xloc>
-      <yloc>32</yloc>
+      <xloc>592</xloc>
+      <yloc>48</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -370,8 +370,8 @@
       </parameters>
       <set_append_logfile>N</set_append_logfile>
       <parallel>N</parallel>
-      <xloc>832</xloc>
-      <yloc>224</yloc>
+      <xloc>1056</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -397,8 +397,8 @@
       </parameters>
       <set_append_logfile>N</set_append_logfile>
       <parallel>N</parallel>
-      <xloc>624</xloc>
-      <yloc>224</yloc>
+      <xloc>848</xloc>
+      <yloc>256</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -425,8 +425,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>832</xloc>
-      <yloc>32</yloc>
+      <xloc>1056</xloc>
+      <yloc>48</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -453,8 +453,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>1056</xloc>
-      <yloc>32</yloc>
+      <xloc>1280</xloc>
+      <yloc>48</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -481,8 +481,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>1056</xloc>
-      <yloc>128</yloc>
+      <xloc>1280</xloc>
+      <yloc>160</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -509,8 +509,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>784</xloc>
-      <yloc>320</yloc>
+      <xloc>1008</xloc>
+      <yloc>352</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -537,8 +537,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>400</xloc>
-      <yloc>128</yloc>
+      <xloc>624</xloc>
+      <yloc>160</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -565,8 +565,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>832</xloc>
-      <yloc>128</yloc>
+      <xloc>1056</xloc>
+      <yloc>160</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -593,8 +593,8 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>512</xloc>
-      <yloc>320</yloc>
+      <xloc>736</xloc>
+      <yloc>352</yloc>
       <attributes_hac/>
     </action>
     <action>
@@ -621,8 +621,301 @@
         <pass_all_parameters>Y</pass_all_parameters>
       </parameters>
       <parallel>N</parallel>
-      <xloc>432</xloc>
-      <yloc>224</yloc>
+      <xloc>656</xloc>
+      <yloc>256</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>Update RangerMSP Summary Data</name>
+      <description/>
+      <type>NEO4J_CYPHER_SCRIPT</type>
+      <attributes/>
+      <connection>${graphdb-ds}</connection>
+      <script>WITH (datetime("2022-9-12").epochmillis)-86400000 as onedayago
+MERGE (ts:Ticketsummary {name:'oneday'}) SET ts.delta=onedayago
+;
+
+WITH (datetime("2022-9-12").epochmillis)-2592000000 as thirtydaysago
+MERGE (ts:Ticketsummary {name:'thirtydays'}) SET ts.delta=thirtydaysago
+;
+
+WITH (datetime("2022-9-12").epochmillis)-1209600000 as fourteendaysago
+MERGE (ts:Ticketsummary {name:'fourteendays'}) SET ts.delta=fourteendaysago
+;
+
+WITH (datetime("2022-9-12").epochmillis)-432000000 as fivedaysago
+MERGE (ts:Ticketsummary {name:'fivedays'}) SET ts.delta=fivedaysago
+;
+
+// DETERMINE When SUNDAY is.
+WITH datetime(apoc.date.format((datetime("2022-9-12").epochmillis),'ms','YYYY-MM-dd','CST')).epochmillis as now
+WITH now,apoc.date.field(now,'w') as weekday
+MATCH (n:Rangerdataload)
+FOREACH (ignoreMe in CASE WHEN weekday&lt;&gt;7 THEN [1] ELSE [] END | SET n.sunday=apoc.date.add(now,'ms',(-1*weekday),'d') ) 
+FOREACH (ignoreMe in CASE WHEN weekday=7 THEN [1] ELSE [] END | SET n.sunday=now) 
+;
+
+// DETERMINE When thefirst is.
+WITH datetime(apoc.date.format((datetime("2022-9-12").epochmillis),'ms','YYYY-MM-dd','CST')).epochmillis as now
+WITH now,apoc.date.field(now,'d') as monthday
+MATCH (n:Rangerdataload)
+FOREACH (ignoreMe in CASE WHEN monthday&lt;&gt;1 THEN [1] ELSE [] END | SET n.firstofmonth=apoc.date.add(now,'ms',((-1*monthday)+1),'d') ) 
+FOREACH (ignoreMe in CASE WHEN monthday=1 THEN [1] ELSE [] END | SET n.firstofmonth=now) 
+;
+
+MATCH (ts:Ticketsummary {name:'oneday'})
+MATCH (a:Company)-[:TICKET_OF_CLIENT]-(t:Ticket) WHERE t.createdon>ts.delta
+AND (t.source='noc.bluenetcloud.com' or t.source contains 'BlueGraph')
+WITH COLLECT(t) as tickets,a,ts
+MERGE (a)-[r:AUTOMATION_TICKETS]-(ts)
+SET r.autotickets=size(tickets)
+;
+
+// TOTAL Tickets Opened
+MATCH (ts:Ticketsummary {name:'thirtydays'})
+MATCH (a:Company)-[:TICKET_OF_CLIENT]-(t:Ticket) WHERE t.createdon>ts.delta
+WITH COLLECT(t) as tickets,a,ts
+MERGE (a)-[r:AUTOMATION_TICKETS]-(ts)
+SET r.totalticketsopened=size(tickets)
+;
+
+// TOTAL Tickets Closed
+MATCH (ts:Ticketsummary {name:'thirtydays'})
+MATCH (a:Company)-[:TICKET_OF_CLIENT]-(t:Ticket) WHERE t.closedon>ts.delta
+WITH COLLECT(t) as tickets,a,ts
+MERGE (a)-[r:AUTOMATION_TICKETS]-(ts)
+SET r.totalticketsclosed=size(tickets)
+;
+
+
+// Monitoring - BlueGraph Tickets
+MATCH (ts:Ticketsummary {name:'thirtydays'})
+MATCH (a:Company)-[:TICKET_OF_CLIENT]-(t:Ticket) WHERE t.createdon>ts.delta
+AND (t.source='noc.bluenetcloud.com' or t.source contains 'BlueGraph')
+WITH COLLECT(t) as tickets,a,ts
+MERGE (a)-[r:AUTOMATION_TICKETS]-(ts)
+SET r.autoticketsopened=size(tickets)
+;
+
+// Client-Initiated Tickets
+MATCH (ts:Ticketsummary {name:'thirtydays'})
+MATCH (a:Company)-[:TICKET_OF_CLIENT]-(t:Ticket) WHERE t.createdon>ts.delta and (t.source &lt;&gt; 'noc.bluenetcloud.com' and not toLower(t.source) contains 'bluegraph' and t.source &lt;&gt; 'User Mod PowerApp' and t.source &lt;&gt; 'Datto API' and not toLower(t.source) contains 'automation')
+WITH COLLECT(t) as tickets,a,ts
+MERGE (a)-[r:AUTOMATION_TICKETS]-(ts)
+SET r.clientreqticketsopened=size(tickets)
+;
+
+// BACKUP Tickets
+MATCH (ts:Ticketsummary {name:'thirtydays'})
+MATCH (a:Company)-[:TICKET_OF_CLIENT]-(t:Ticket) WHERE t.closedon>ts.delta
+AND (toLower(t.type) contains 'backup' or t.source='Datto API' or toLower(t.service) contains 'veeam' or toLower(t.problem) contains 'backup')
+WITH COLLECT(t) as tickets,a,ts
+MERGE (a)-[r:AUTOMATION_TICKETS]-(ts)
+SET r.backupticketsopened=size(tickets)
+;
+
+// CLIENT PORTAL or EMAIL Tickets
+MATCH (ts:Ticketsummary {name:'thirtydays'})
+MATCH (a:Company)-[:TICKET_OF_CLIENT]-(t:Ticket) WHERE t.closedon>ts.delta
+OPTIONAL MATCH (e:Rangeremployee {acctrecid:t.createdby})
+WITH t,a,ts,e,coalesce(e.name,t.createdby) as Createdby
+WITH a,ts,t,Createdby WHERE (e.acctrecid IS NULL or Createdby starts with 'CRD') AND not Createdby starts with 'FR1'
+WITH COLLECT(t) as tickets,a,ts
+MERGE (a)-[r:AUTOMATION_TICKETS]-(ts)
+SET r.portalandemailticketsopened=size(tickets)
+;
+
+// User Add/Drop Tickets
+MATCH (ts:Ticketsummary {name:'thirtydays'})
+MATCH (a:Company)-[:TICKET_OF_CLIENT]-(t:Ticket) WHERE t.createdon>ts.delta AND (t.type starts with 'User Request' or (t)-[:USER_MODIFICATION_TICKET]-())
+WITH COLLECT(t) as tickets,a,ts
+MERGE (a)-[r:AUTOMATION_TICKETS]-(ts)
+SET r.usermodticketsopened=size(tickets)
+;
+
+// BlueAssure Usercount
+MATCH (a:Company)-[r:AUTOMATION_TICKETS]-(ts:Ticketsummary {name:'thirtydays'})
+WITH COLLECT(DISTINCT a) as companies
+UNWIND companies as a
+MATCH (a:Company)-[r:AUTOMATION_TICKETS]-(:Ticketsummary {name:'thirtydays'})
+MATCH (rc:Reportingcontact {company:a.name,blueassureuser:true})
+WITH a,r,count(rc) as bausers
+SET r.blueassureusers=bausers
+;
+
+
+MATCH (e:Rangeremployee)
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRD0CSJX61KEUU3LTXM1' THEN [1] ELSE [] END | SET e.department='sales') // Adam
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRDXRW14CUDFGDTGRSVB' THEN [1] ELSE [] END | SET e.department='management') //Paul
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRDY616YJU79TY9RLX9Z' THEN [1] ELSE [] END | SET e.department='sales') //Chad
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRDXM4HAVNTA111812AW' THEN [1] ELSE [] END | SET e.department='management') //Stephen
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRDB4FN7OG0F7MRICKS9' THEN [1] ELSE [] END | SET e.department='sales') //abstrakt
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRDW37WCINAM17O63VO8' THEN [1] ELSE [] END | SET e.department='management') //Craig
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRDTYSEA407H8LQBG07G' THEN [1] ELSE [] END | SET e.department='sales') //Justin
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRDCLZNSZ2SMAAZ12AQQ' THEN [1] ELSE [] END | SET e.department='management') //Brian
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRD7DJ66BXZB35K8TSQS' THEN [1] ELSE [] END | SET e.department='sales') //Todd
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRDJJ7J1XRF52EGYJADV' THEN [1] ELSE [] END | SET e.department='sales') //Heidi
+FOREACH (ignoreMe in CASE WHEN e.acctrecid='CRDRLJNEZF5P5BZDIPEC' THEN [1] ELSE [] END | SET e.department='management') //M Dean
+FOREACH (ignoreMe in CASE WHEN e.department IS NULL THEN [1] ELSE [] END | SET e.department='technical') //All Else;
+;
+
+MATCH (ce:Rangeremployee) REMOVE ce.totalopentickets,ce.weeklynewtickets,ce.weeklyclosedtickets,ce.monthlyclosedtickets
+;
+
+WITH (datetime("2022-9-12").epochmillis)-604800000 as sevendaysago,(datetime("2022-9-12").epochmillis)-302400000 as threedaysago
+MATCH (e:Rangeremployee)-[:MANAGED_BY]-(t:Ticket)-[tsr:TICKET_STATUS]-(ts:Ticketstatus) where ts.statcode&lt;800 and t.createdon&lt;sevendaysago
+WITH * WHERE datetime(t.lastcharge).epochmillis&lt;threedaysago or t.lastcharge IS NULL and t.updatedon&lt;threedaysago
+WITH e,COUNT(t) as staletickets
+SET e.staletickets=staletickets
+RETURN e.name,staletickets
+;
+
+// TOTAL open tickets
+MATCH (ce:Rangeremployee)-[:ACCOUNT_STATE]-(:Recordstatus {state:'A'}) WHERE NOT ce.name in ['admin']
+WITH COLLECT(ce) as managers
+unwind managers as ce
+MATCH (ce)-[r:MANAGED_BY]-(t:Ticket)-[:TICKET_STATUS]-(ts:Ticketstatus) WHERE ts.statcode&lt;900
+WITH ce,count(r) as opentickets
+SET ce.totalopentickets=opentickets
+RETURN ce.name,opentickets
+;
+
+// NEW tickets this week
+MATCH (n:Rangerdataload)
+MATCH (ce:Rangeremployee)-[:ACCOUNT_STATE]-(:Recordstatus {state:'A'}) WHERE NOT ce.name in ['admin']
+WITH n,COLLECT(ce) as managers
+unwind managers as ce
+MATCH (ce)-[r:MANAGED_BY]-(t:Ticket) WHERE t.createdon > n.sunday
+WITH ce,count(t) as weeklynewtickets
+SET ce.weeklynewtickets=weeklynewtickets
+RETURN ce.name,weeklynewtickets
+;
+
+//CLOSED tickets this week
+MATCH (n:Rangerdataload)
+MATCH (ce:Rangeremployee)-[:ACCOUNT_STATE]-(:Recordstatus {state:'A'}) WHERE NOT ce.name in ['admin']
+WITH n,COLLECT(ce) as managers
+unwind managers as ce
+MATCH (ce)-[r:MANAGED_BY]-(t:Ticket)-[:TICKET_STATUS]-(ts:Ticketstatus) WHERE ts.statcode>900 AND t.closedon > n.sunday
+WITH ce,count(t) as weeklyclosedtickets
+SET ce.weeklyclosedtickets=weeklyclosedtickets
+RETURN ce.name,weeklyclosedtickets
+;
+
+//CLOSED tickets this month
+MATCH (n:Rangerdataload)
+MATCH (ce:Rangeremployee)-[:ACCOUNT_STATE]-(:Recordstatus {state:'A'}) WHERE NOT ce.name in ['admin']
+WITH n,COLLECT(ce) as managers
+unwind managers as ce
+MATCH (ce)-[r:MANAGED_BY]-(t:Ticket)-[:TICKET_STATUS]-(ts:Ticketstatus) WHERE ts.statcode>900 AND t.closedon > n.firstofmonth
+WITH ce,count(t) as monthlyclosedtickets
+SET ce.monthlyclosedtickets=monthlyclosedtickets
+RETURN ce.name,monthlyclosedtickets
+;
+
+
+
+MATCH (ra:Reportingasset) WITH COLLECT(Distinct ra.company) as companies
+UNWIND companies as company
+MATCH (ra:Reportingasset {company:company})
+MATCH (a:Company {name:company})
+WITH a,count(ra) as totalassets
+SET a.totalassets=totalassets,a.endpoints=0
+RETURN a.name,totalassets
+;
+
+
+MATCH (ra:Reportingasset) WITH COLLECT(Distinct ra.company) as companies, ['Notebook','Desktop','Workstation','Mini PC','Computer','Zero Client','Thin Client'] as Endpoint
+UNWIND companies as company
+MATCH (ra:Reportingasset {company:company}) WHERE ra.type in Endpoint
+MATCH (a:Company {name:company})
+WITH a,count(ra) as epassets
+SET a.endpoints=epassets
+RETURN a.name,epassets
+;
+
+
+MATCH (a:Company) WHERE a.totalassets >0
+SET a.infrastructure=(a.totalassets-coalesce(a.endpoints,0))
+RETURN a.name,a.totalassets,a.endpoints,a.infrastructure
+;
+
+
+
+
+MATCH (ra:Reportingasset) WITH COLLECT(Distinct ra.company) as companies, ['Notebook','Desktop','Workstation','Mini PC','Computer','Zero Client','Thin Client'] as Endpoint
+UNWIND companies as company
+MATCH (ra:Reportingasset {company:company})-[r:REPORTING_FOR_ASSET]->(:Rangerasset)-[:IS_TAGGED_WITH]->(:Rangeritem) WHERE NOT ra.type in Endpoint
+MATCH (a:Company {name:company})
+WITH a,count(DISTINCT r) as taggedinfra
+SET a.taggedinfrastructure=taggedinfra
+RETURN a.name,a.infrastructure,taggedinfra
+;
+
+
+MATCH (ra:Reportingasset) WITH COLLECT(Distinct ra.company) as companies, ['Notebook','Desktop','Workstation','Mini PC','Computer','Zero Client','Thin Client'] as Endpoint
+UNWIND companies as company
+MATCH (ra:Reportingasset {company:company}) WHERE ra.type in Endpoint
+MATCH (a:Company {name:company})
+WITH a,count(ra) as epassets
+SET a.endpoints=epassets
+RETURN a.name,epassets
+;
+
+
+MATCH (ra:Reportingasset) WITH COLLECT(Distinct ra.company) as companies
+UNWIND companies as company
+MATCH (ra:Reportingasset {company:company,ninjamonitor:true})
+MATCH (a:Company {name:company})
+WITH a,count(ra) as ninjaexpected
+SET a.ninjaexpected=ninjaexpected
+RETURN a.name,ninjaexpected
+;
+
+MATCH (ra:Reportingasset) WITH COLLECT(Distinct ra.company) as companies
+UNWIND companies as company
+MATCH (ra:Reportingasset {company:company,ninjamonitor:true})-[r:REPORTING_FOR_ASSET]->(:Rangerasset)-[:MONITORED_VIA]->(:Rmmdevice)
+MATCH (a:Company {name:company})
+WITH a,count(DISTINCT r) as ninjaprovisioned
+SET a.ninjaprovisioned=ninjaprovisioned
+RETURN a.name,a.ninjaexpected,ninjaprovisioned
+;
+
+</script>
+      <replace_variables>N</replace_variables>
+      <parallel>N</parallel>
+      <xloc>304</xloc>
+      <yloc>464</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>Check Neo4j DB</name>
+      <description/>
+      <type>NEO4J_CHECK_CONNECTIONS</type>
+      <attributes/>
+      <connections>
+        <connection>${graphdb-ds}</connection>
+      </connections>
+      <parallel>N</parallel>
+      <xloc>208</xloc>
+      <yloc>48</yloc>
+      <attributes_hac/>
+    </action>
+    <action>
+      <name>Check RangerMSP DB</name>
+      <description/>
+      <type>CHECK_DB_CONNECTIONS</type>
+      <attributes/>
+      <connections>
+        <connection>
+          <name>localhost RangerMSP</name>
+          <waitfor>0</waitfor>
+          <waittime>millisecond</waittime>
+        </connection>
+      </connections>
+      <parallel>N</parallel>
+      <xloc>384</xloc>
+      <yloc>48</yloc>
       <attributes_hac/>
     </action>
   </actions>
@@ -668,13 +961,6 @@
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>
-    </hop>
-    <hop>
-      <from>Start</from>
-      <to>Set-RangerMSP prereq and Indexes</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>Y</unconditional>
     </hop>
     <hop>
       <from>Set-RangerMSP prereq and Indexes</from>
@@ -754,13 +1040,6 @@
       <unconditional>N</unconditional>
     </hop>
     <hop>
-      <from>Update (:Opportunity)</from>
-      <to>Success</to>
-      <enabled>Y</enabled>
-      <evaluation>Y</evaluation>
-      <unconditional>N</unconditional>
-    </hop>
-    <hop>
       <from>RangerMSP-update-Crmasset</from>
       <to>RangerMSP-Crmcontract</to>
       <enabled>Y</enabled>
@@ -777,6 +1056,41 @@
     <hop>
       <from>new-Rangerasset-nodes</from>
       <to>RangerMSP-update-Crmasset</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Update (:Opportunity)</from>
+      <to>Update RangerMSP Summary Data</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Update RangerMSP Summary Data</from>
+      <to>Success</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Start</from>
+      <to>Check Neo4j DB</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>Y</unconditional>
+    </hop>
+    <hop>
+      <from>Check Neo4j DB</from>
+      <to>Check RangerMSP DB</to>
+      <enabled>Y</enabled>
+      <evaluation>Y</evaluation>
+      <unconditional>N</unconditional>
+    </hop>
+    <hop>
+      <from>Check RangerMSP DB</from>
+      <to>Set-RangerMSP prereq and Indexes</to>
       <enabled>Y</enabled>
       <evaluation>Y</evaluation>
       <unconditional>N</unconditional>
