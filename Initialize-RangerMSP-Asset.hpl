@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <pipeline>
   <info>
-    <name>Initialize-RangerMSP-Asset</name>
+    <name>RangerMSP\Initialize-RangerMSP-Asset</name>
     <name_sync_with_filename>Y</name_sync_with_filename>
     <description/>
     <extended_description/>
@@ -42,6 +42,11 @@
       <to>Create distinct Assetcategory 2</to>
       <enabled>Y</enabled>
     </hop>
+    <hop>
+      <from>Update Assetmodel from assets</from>
+      <to>Create distinct Asset model</to>
+      <enabled>Y</enabled>
+    </hop>
   </order>
   <transform>
     <name>Block until transforms finish</name>
@@ -62,7 +67,7 @@
     <attributes/>
     <GUI>
       <xloc>128</xloc>
-      <yloc>320</yloc>
+      <yloc>416</yloc>
     </GUI>
   </transform>
   <transform>
@@ -113,91 +118,6 @@ MERGE (ac:Assetcategory {name:cat})
     </GUI>
   </transform>
   <transform>
-    <name>Create distinct Manufacturer</name>
-    <type>Neo4jCypherOutput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${graphdb-ds}</connection>
-    <cypher>UNWIND $manufacturers as m
-WITH COLLECT(distinct m.manufacturer) as manufacturers,"[^a-zA-Z\\d]" as regex
-UNWIND manufacturers as mfr
-OPTIONAL MATCH (m:Manufacturer) where toLower(m.name)=trim(toLower(mfr)) or toLower(m.name) in m.aliases
-WITH * where m is null
-MERGE (:Manufacturer {name:mfr})
-;</cypher>
-    <batch_size>25000</batch_size>
-    <read_only>N</read_only>
-    <nr_retries_on_error/>
-    <retry>Y</retry>
-    <cypher_from_field>N</cypher_from_field>
-    <cypher_field/>
-    <unwind>Y</unwind>
-    <unwind_map>manufacturers</unwind_map>
-    <returning_graph>N</returning_graph>
-    <return_graph_field/>
-    <mappings>
-      <mapping>
-        <parameter>manufacturer</parameter>
-        <field>manufacturer</field>
-        <type>String</type>
-      </mapping>
-    </mappings>
-    <returns/>
-    <attributes/>
-    <GUI>
-      <xloc>624</xloc>
-      <yloc>320</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Update Assetcategory from assets</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${RangerMSP-ds}</connection>
-    <execute_each_row>N</execute_each_row>
-    <sql>SELECT user1 from assets where user1 is not null and user1 &lt;&gt; ''</sql>
-    <variables_active>N</variables_active>
-    <attributes/>
-    <GUI>
-      <xloc>352</xloc>
-      <yloc>256</yloc>
-    </GUI>
-  </transform>
-  <transform>
-    <name>Update Manufacturer from assets</name>
-    <type>TableInput</type>
-    <description/>
-    <distribute>Y</distribute>
-    <custom_distribution/>
-    <copies>1</copies>
-    <partitioning>
-      <method>none</method>
-      <schema_name/>
-    </partitioning>
-    <connection>${RangerMSP-ds}</connection>
-    <execute_each_row>N</execute_each_row>
-    <sql>SELECT manufacturer from assets where manufacturer is not null and manufacturer &lt;&gt; ''</sql>
-    <variables_active>N</variables_active>
-    <attributes/>
-    <GUI>
-      <xloc>352</xloc>
-      <yloc>320</yloc>
-    </GUI>
-  </transform>
-  <transform>
     <name>Create distinct Assetcategory 2</name>
     <type>Neo4jCypherOutput</type>
     <description/>
@@ -243,6 +163,71 @@ MERGE (at:Assettype {name:t.value})
     </GUI>
   </transform>
   <transform>
+    <name>Create distinct Manufacturer</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $manufacturers as m
+WITH COLLECT(distinct m.manufacturer) as manufacturers,"[^a-zA-Z\\d]" as regex
+UNWIND manufacturers as mfr
+OPTIONAL MATCH (m:Manufacturer) where toLower(m.name)=trim(toLower(mfr)) or toLower(m.name) in m.aliases
+WITH * where m is null
+MERGE (:Manufacturer {name:mfr})
+;</cypher>
+    <batch_size>25000</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>manufacturers</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>manufacturer</parameter>
+        <field>manufacturer</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns/>
+    <attributes/>
+    <GUI>
+      <xloc>624</xloc>
+      <yloc>416</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update Assetcategory from assets</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <limit/>
+    <sql>SELECT DISTINCT user1 from assets where user1 is not null and user1 &lt;&gt; ''</sql>
+    <variables_active>N</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>352</xloc>
+      <yloc>256</yloc>
+    </GUI>
+  </transform>
+  <transform>
     <name>Update Assettype from assets</name>
     <type>TableInput</type>
     <description/>
@@ -262,6 +247,97 @@ MERGE (at:Assettype {name:t.value})
     <GUI>
       <xloc>352</xloc>
       <yloc>176</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update Manufacturer from assets</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <limit/>
+    <sql>SELECT manufacturer from assets where manufacturer is not null and manufacturer &lt;&gt; ''</sql>
+    <variables_active>N</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>352</xloc>
+      <yloc>416</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Create distinct Asset model</name>
+    <type>Neo4jCypherOutput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${graphdb-ds}</connection>
+    <cypher>UNWIND $models as m
+WITH COLLECT(distinct m.model) as models
+UNWIND models as mod
+MERGE (am:Model {name:mod})
+;</cypher>
+    <batch_size>25000</batch_size>
+    <read_only>N</read_only>
+    <nr_retries_on_error/>
+    <retry>Y</retry>
+    <cypher_from_field>N</cypher_from_field>
+    <cypher_field/>
+    <unwind>Y</unwind>
+    <unwind_map>models</unwind_map>
+    <returning_graph>N</returning_graph>
+    <return_graph_field/>
+    <mappings>
+      <mapping>
+        <parameter>model</parameter>
+        <field>model</field>
+        <type>String</type>
+      </mapping>
+    </mappings>
+    <returns>
+      <return>
+        <name>badasset</name>
+        <type>String</type>
+        <source_type/>
+      </return>
+    </returns>
+    <attributes/>
+    <GUI>
+      <xloc>624</xloc>
+      <yloc>336</yloc>
+    </GUI>
+  </transform>
+  <transform>
+    <name>Update Assetmodel from assets</name>
+    <type>TableInput</type>
+    <description/>
+    <distribute>Y</distribute>
+    <custom_distribution/>
+    <copies>1</copies>
+    <partitioning>
+      <method>none</method>
+      <schema_name/>
+    </partitioning>
+    <connection>${RangerMSP-ds}</connection>
+    <execute_each_row>N</execute_each_row>
+    <limit/>
+    <sql>SELECT DISTINCT model from assets where model is not null and model &lt;&gt; ''</sql>
+    <variables_active>N</variables_active>
+    <attributes/>
+    <GUI>
+      <xloc>352</xloc>
+      <yloc>336</yloc>
     </GUI>
   </transform>
   <transform_error_handling>
